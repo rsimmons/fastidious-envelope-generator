@@ -1,0 +1,9 @@
+{
+  "name": "fastidious-envelope-generator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web Audio API-based envelope generator that tries to handle edge cases correctly",
+  "main": "index.js",
+  "author": "Russel Simmons <russ@rsimmons.org>",
+  "license": "MIT"
+}
