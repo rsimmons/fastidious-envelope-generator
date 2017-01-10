@@ -6,6 +6,17 @@ function assert(v) {
   }
 }
 
+// based on http://stackoverflow.com/a/31925519
+var nextFloat = (function () {
+  var intArr = new Uint32Array(1);
+  var floatArr = new Float32Array(intArr.buffer);
+  return function(v) {
+    floatArr[0] = v;
+    intArr[0] = intArr[0] + 1;
+    return floatArr[0];
+  }
+})();
+
 function EnvGen(audioContext, targetParam) {
   // Support instantiating w/o new
   if (!(this instanceof EnvGen)) {
@@ -65,9 +76,11 @@ function EnvGen(audioContext, targetParam) {
       _this._attackRate = Number.POSITIVE_INFINITY;
     } else {
       if (_this._attackShape === _this.LINEAR) {
-        _this._attackRate = math.abs(_this._attacklevel - _this._initialLevel)/_this._attackTime;
+        _this._attackRate = Math.abs(_this._attackLevel - _this._initialLevel)/_this._attackTime;
       } else if (_this._attackShape === _this.FINITE_EXPONENTIAL) {
-        _this._attackRate = math.abs(math.log(_this._attacklevel/_this._initialLevel))/_this._attackTime;
+        _this._attackRate = Math.abs(Math.log(_this._attackLevel/_this._initialLevel))/_this._attackTime;
+      } else {
+        assert(false);
       }
     }
 
@@ -76,9 +89,13 @@ function EnvGen(audioContext, targetParam) {
       _this._decayRate = Number.POSITIVE_INFINITY;
     } else {
       if (_this._decayShape === _this.LINEAR) {
-        _this._decayRate = math.abs(_this._attacklevel - _this._sustainLevel)/_this._decayTime;
+        _this._decayRate = Math.abs(_this._attackLevel - _this._sustainLevel)/_this._decayTime;
       } else if (_this._decayShape === _this.FINITE_EXPONENTIAL) {
-        _this._decayRate = math.abs(math.log(_this._attacklevel/_this._sustainLevel))/_this._decayTime;
+        _this._decayRate = Math.abs(Math.log(_this._attackLevel/_this._sustainLevel))/_this._decayTime;
+      } else if (_this._decayShape === _this.INFINITE_EXPONENTIAL_APPROACH) {
+        _this._decayRate = 1.0/_this._decayTime;
+      } else {
+        assert(false);
       }
     }
 
@@ -96,6 +113,10 @@ function EnvGen(audioContext, targetParam) {
         _this._releaseRate = math.abs(from - _this._initialLevel)/_this._releaseTime;
       } else if (_this._releaseShape === _this.FINITE_EXPONENTIAL) {
         _this._releaseRate = math.abs(math.log(from/_this._initialLevel))/_this._releaseTime;
+      } else if (_this._releaseShape === _this.INFINITE_EXPONENTIAL_APPROACH) {
+        _this._releaseRate = 1.0/_this._releaseTime;
+      } else {
+        assert(false);
       }
     }
   }
@@ -182,11 +203,11 @@ function EnvGen(audioContext, targetParam) {
   });
 
   // Default settings
-  this._mode = 'AR';
+  this._mode = 'ADSR';
   this._initialLevel = 0;
   this._attackShape = this.LINEAR;
   this._attackLevel = 1.0;
-  this._attackTime = 1.0;
+  this._attackTime = 0.5;
   this._decayShape = this.INFINITE_EXPONENTIAL_APPROACH;
   this._decayTime = 1.0;
   this._sustainLevel = 0.5;
@@ -194,7 +215,7 @@ function EnvGen(audioContext, targetParam) {
   this._releaseTime = 1.0;
   constrainSettings();
 
-  this._targetParam.value = initialLevel;
+  this._targetParam.value = this._initialLevel;
 
   // Each segment has properties:
   //  beginTime: inclusive
@@ -215,7 +236,7 @@ EnvGen.prototype.LINEAR = 'L';
 EnvGen.prototype.FINITE_EXPONENTIAL = 'FE';
 EnvGen.prototype.INFINITE_EXPONENTIAL_APPROACH = 'IEA';
 
-EnvGen.prototype._computeScheduledValue(time) {
+EnvGen.prototype._computeScheduledValue = function(time) {
   if (!this._scheduledSegments.length) {
     // If there are no scheduled segments, that means envelope should be at zero
     return 0;
@@ -296,7 +317,7 @@ EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
 
       case this.INFINITE_EXPONENTIAL_APPROACH:
         endTime = Number.POSITIVE_INFINITY;
-        this._targetParam.setTargetAtTime(endValue, 1.0/rate);
+        this._targetParam.setTargetAtTime(endValue, lastSeg.endTime, 1.0/rate);
         break;
 
       default:
@@ -305,6 +326,7 @@ EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
   }
 
   this._scheduledSegments.push({
+    shape: shape,
     beginTime: lastSeg.endTime,
     endTime: endTime,
     beginValue: lastSeg.endValue,
@@ -334,7 +356,8 @@ EnvGen.prototype.gate = function(on, time) {
   this._targetParam.setValueAtTime(startValue, time);
 
   // Cancel all scheduled changes after that
-  this._targetParam.cancelScheduledValues(nextDouble(time));
+  // TODO: I think this should be finding next double, not just next float, but unsure how to do that
+  this._targetParam.cancelScheduledValues(nextFloat(time));
 
   // Reinit scheduled segments array with a 'dummy' segment to simplify code
   this._scheduledSegments = [{
