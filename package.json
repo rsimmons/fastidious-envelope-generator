@@ -5,5 +5,12 @@
   "description": "Web Audio API-based envelope generator that tries to handle edge cases correctly",
   "main": "index.js",
   "author": "Russel Simmons <russ@rsimmons.org>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "build": "webpack ./demo.js bundle.js --progress --colors --optimize-minimize",
+    "watch": "webpack ./demo.js bundle.js --progress --colors --watch"
+  },
+  "devDependencies": {
+    "webpack": "^1.14.0"
+  }
 }
