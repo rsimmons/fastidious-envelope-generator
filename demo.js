@@ -7,11 +7,11 @@ var audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 // since ConstantSourceNode is not yet widely available
 function createConstantNode(audioContext, v) {
-  const constantBuffer = audioContext.createBuffer(1, 2, audioContext.sampleRate);
-  const constantData = constantBuffer.getChannelData(0);
+  var constantBuffer = audioContext.createBuffer(1, 2, audioContext.sampleRate);
+  var constantData = constantBuffer.getChannelData(0);
   constantData[0] = v;
   constantData[1] = v;
-  const node = audioContext.createBufferSource();
+  var node = audioContext.createBufferSource();
   node.buffer = constantBuffer;
   node.loop = true;
   node.start();
