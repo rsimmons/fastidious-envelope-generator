@@ -8,6 +8,10 @@ html {
   font-family: sans-serif;
 }
 
+#controls {
+  margin-top: 10px;
+}
+
 #gate-button {
   font-family: sans-serif;
   border: 1px solid #888;
@@ -26,7 +30,8 @@ html {
     </style>
   </head>
   <body>
-    <div>
+    <canvas id="env-graph" width="512" height="256"></canvas>
+    <div id="controls">
         <button id="gate-button">Gate</button>
     </div>
     <script src="bundle.js" charset="utf-8"></script>
