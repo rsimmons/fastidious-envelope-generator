@@ -9,7 +9,16 @@ html {
 }
 
 #controls {
-  margin-top: 10px;
+  min-width: 300px;
+}
+
+canvas {
+  margin-right: 15px;
+  margin-bottom: 15px;
+}
+
+#gate-controls {
+  margin-bottom: 10px;
 }
 
 #gate-button {
@@ -27,12 +36,20 @@ html {
 #gate-button:active {
   background-color: #999;
 }
+
     </style>
   </head>
   <body>
-    <canvas id="env-graph" width="512" height="256"></canvas>
-    <div id="controls">
-        <button id="gate-button">Gate</button>
+    <h1>Fastidious Envelope Generator Demo</h1>
+    <div style="display: flex; flex-wrap: wrap">
+      <canvas id="env-graph" width="512" height="256"></canvas>
+      <div id="controls">
+        <div id="gate-controls">
+            <button id="gate-button">Gate</button>
+        </div>
+        <div id="settings">
+        </div>
+      </div>
     </div>
     <script src="bundle.js" charset="utf-8"></script>
   </body>

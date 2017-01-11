@@ -42,7 +42,7 @@ var egen = new EnvGen(audioContext, envGainNode.gain);
 envGainNode.connect(grapherNode);
 grapherNode.connect(vcaNode.gain); // We have to insert it 'inline' otherwise it seems to get GC'd
 
-// Hook up controls
+// Hook up gate controls
 var gateButtonElem = document.querySelector('#gate-button');
 gateButtonElem.addEventListener('mousedown', function(e) {
   e.preventDefault();
@@ -52,3 +52,51 @@ gateButtonElem.addEventListener('mouseup', function(e) {
   e.preventDefault();
   egen.gateOff();
 });
+
+// Hook up setting controls
+var SETTINGS = [
+  {name: 'mode', options: [['AD', 'AD'], ['AR', 'AR'], ['ADSR', 'ADSR']]},
+  {name: 'initialLevel'},
+  {name: 'attackShape', options: [[egen.LINEAR, 'linear'], [egen.FINITE_EXPONENTIAL, 'finite exponential']]},
+  {name: 'attackLevel'},
+  {name: 'attackTime'},
+  {name: 'decayShape', options: [[egen.LINEAR, 'linear'], [egen.FINITE_EXPONENTIAL, 'finite exponential'], [egen.INFINITE_EXPONENTIAL_APPROACH, 'infinite exponential approach']]},
+  {name: 'decayTime'},
+  {name: 'sustainLevel'},
+  {name: 'releaseShape', options: [[egen.LINEAR, 'linear'], [egen.FINITE_EXPONENTIAL, 'finite exponential'], [egen.INFINITE_EXPONENTIAL_APPROACH, 'infinite exponential approach']]},
+  {name: 'releaseTime'},
+];
+
+var settingsElem = document.querySelector('#settings');
+
+function addSetting(setting) {
+  var wrapperElem = document.createElement('div');
+  var labelElem = document.createElement('label');
+  var controlElem;
+  if (setting.options) {
+    controlElem = document.createElement('select');
+    for (var j = 0; j < setting.options.length; j++) {
+      var option = setting.options[j];
+      var optionElem = document.createElement('option');
+      optionElem.value = option[0];
+      optionElem.textContent = option[1];
+      controlElem.appendChild(optionElem);
+    }
+  } else {
+    controlElem = document.createElement('input');
+  }
+
+  controlElem.value = egen[setting.name];
+  controlElem.addEventListener('input', function() {
+    egen[setting.name] = controlElem.value;
+  });
+
+  labelElem.appendChild(document.createTextNode(setting.name + ' '));
+  labelElem.appendChild(controlElem);
+  wrapperElem.appendChild(labelElem);
+  settingsElem.appendChild(wrapperElem);
+}
+
+for (var i = 0; i < SETTINGS.length; i++) {
+  addSetting(SETTINGS[i]);
+}

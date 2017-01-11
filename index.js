@@ -212,7 +212,7 @@ function EnvGen(audioContext, targetParam) {
   this._decayTime = 1.0;
   this._sustainLevel = 0.5;
   this._releaseShape = this.INFINITE_EXPONENTIAL_APPROACH;
-  this._releaseTime = 1.0;
+  this._releaseTime = 0.5;
   constrainSettings();
 
   this._targetParam.value = this._initialLevel;
