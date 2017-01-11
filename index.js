@@ -311,7 +311,7 @@ EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
         break;
 
       case this.FINITE_EXPONENTIAL:
-        endTime = lastSeg.endTime + Math.abs(Math.log(endValue/lastSegment.endValue)/rate);
+        endTime = lastSeg.endTime + Math.abs(Math.log(endValue/lastSeg.endValue)/rate);
         this._targetParam.exponentialRampToValueAtTime(endValue, endTime);
         break;
 
