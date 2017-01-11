@@ -110,9 +110,9 @@ function EnvGen(audioContext, targetParam) {
         } else {
           fromLevel = _this._attackLevel;
         }
-        _this._releaseRate = math.abs(from - _this._initialLevel)/_this._releaseTime;
+        _this._releaseRate = Math.abs(fromLevel - _this._initialLevel)/_this._releaseTime;
       } else if (_this._releaseShape === _this.FINITE_EXPONENTIAL) {
-        _this._releaseRate = math.abs(math.log(from/_this._initialLevel))/_this._releaseTime;
+        _this._releaseRate = Math.abs(Math.log(fromLevel/_this._initialLevel))/_this._releaseTime;
       } else if (_this._releaseShape === _this.INFINITE_EXPONENTIAL_APPROACH) {
         _this._releaseRate = 1.0/_this._releaseTime;
       } else {
@@ -276,7 +276,7 @@ EnvGen.prototype._computeScheduledValue = function(time) {
     // TODO: should be equal to activeSeg.beginValue + activeSeg.rate*(time - activeSeg.beginTime)
     return activeSeg.beginValue + ((time - activeSeg.beginTime)/(activeSeg.endTime - activeSeg.beginTime))*(activeSeg.endValue - activeSeg.beginValue);
   } else if (activeSeg.shape === this.FINITE_EXPONENTIAL) {
-    // TODO: should be equal to math.exp(math.log(activeSeg.beginValue) + activeSeg.rate*(time - activeSeg.beginTime))
+    // TODO: should be equal to Math.exp(Math.log(activeSeg.beginValue) + activeSeg.rate*(time - activeSeg.beginTime))
     return activeSeg.beginValue*((time - activeSeg.beginTime)/(activeSeg.endTime - activeSeg.beginTime))*(activeSeg.endValue/activeSeg.beginValue);
   } else if (activeSeg.shape === this.INFINITE_EXPONENTIAL_APPROACH) {
     return activeSeg.endValue + (activeSeg.beginValue - activeSeg.endValue)*Math.exp(activeSeg.rate*(activeSeg.beginTime - time));
