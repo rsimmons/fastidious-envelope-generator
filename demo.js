@@ -84,11 +84,17 @@ function addSetting(setting) {
     }
   } else {
     controlElem = document.createElement('input');
+    controlElem.type = 'number';
+    controlElem.step = 'any';
   }
 
   controlElem.value = egen[setting.name];
   controlElem.addEventListener('input', function() {
-    egen[setting.name] = controlElem.value;
+    if (setting.options) {
+      egen[setting.name] = controlElem.value;
+    } else {
+      egen[setting.name] = parseFloat(controlElem.value);
+    }
   });
 
   labelElem.appendChild(document.createTextNode(setting.name + ' '));
