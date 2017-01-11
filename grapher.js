@@ -30,12 +30,9 @@ function createGrapher(audioContext, canvasElem, samplesPerPoint) {
   var canvasCtx = canvasElem.getContext('2d');
   var rafId;
 
-  function draw() {
-    canvasCtx.fillStyle = 'rgb(0, 0, 0)';
-    canvasCtx.fillRect(0, 0, canvasElem.width, canvasElem.height);
-
+  function drawData(data, color) {
     canvasCtx.lineWidth = 1;
-    canvasCtx.strokeStyle = 'rgb(0, 255, 0)';
+    canvasCtx.strokeStyle = color;
 
     canvasCtx.beginPath();
 
@@ -45,7 +42,7 @@ function createGrapher(audioContext, canvasElem, samplesPerPoint) {
         idx -= graphPoints;
       }
 
-      var y = canvasElem.height*(1 - (graphDataMax[idx]-minY)/(maxY-minY));
+      var y = canvasElem.height*(1 - (data[idx]-minY)/(maxY-minY));
 
       if (x === 0) {
         canvasCtx.moveTo(x, y);
@@ -55,6 +52,14 @@ function createGrapher(audioContext, canvasElem, samplesPerPoint) {
     }
 
     canvasCtx.stroke();
+  }
+
+  function draw() {
+    canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+    canvasCtx.fillRect(0, 0, canvasElem.width, canvasElem.height);
+
+    drawData(graphDataMin, 'rgb(100, 255, 0)');
+    drawData(graphDataMax, 'rgb(0, 255, 100)');
 
     rafId = requestAnimationFrame(draw);
   };
