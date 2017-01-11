@@ -71,7 +71,10 @@ var settingsElem = document.querySelector('#settings');
 
 function addSetting(setting) {
   var wrapperElem = document.createElement('div');
+  wrapperElem.className = 'setting-wrapper';
+
   var labelElem = document.createElement('label');
+
   var controlElem;
   if (setting.options) {
     controlElem = document.createElement('select');
