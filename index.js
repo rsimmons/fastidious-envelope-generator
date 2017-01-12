@@ -17,6 +17,8 @@ var nextFloat = (function () {
   }
 })();
 
+var INITIAL_LEVEL = 0; // It doesn't seem useful for this to be a setting
+
 function EnvGen(audioContext, targetParam) {
   // Support instantiating w/o new
   if (!(this instanceof EnvGen)) {
@@ -28,78 +30,39 @@ function EnvGen(audioContext, targetParam) {
 
   var _this = this;
 
-  function constrainSettings() {
-    if (_this.AVAILABLE_MODES.indexOf(_this._mode) < 0) {
-      _this._mode = 'AR';
-    }
-
-    if (!((_this._attackShape === _this.LINEAR) || (_this._attackShape === _this.FINITE_EXPONENTIAL))) {
-      _this._attackShape = _this.LINEAR;
-    }
-
-    if (!((_this._decayShape === _this.LINEAR) || (_this._decayShape === _this.FINITE_EXPONENTIAL) || (_this._decayShape === _this.INFINITE_EXPONENTIAL_APPROACH))) {
-      _this._decayShape = _this.LINEAR;
-    }
-
-    if (!((_this._releaseShape === _this.LINEAR) || (_this._releaseShape === _this.FINITE_EXPONENTIAL) || (_this._releaseShape === _this.INFINITE_EXPONENTIAL_APPROACH))) {
-      _this._releaseShape = _this.LINEAR;
-    }
-
-    if (_this._attackTime < 0) {
-      _this._attackTime = 0;
-    }
-
-    if (_this._decayTime < 0) {
-      _this._decayTime = 0;
-    }
-
-    if (_this._releaseTime < 0) {
-      _this._releaseTime = 0;
-    }
-
-    if ((_this._initialLevel === 0) && ((_this._attackShape === _this.FINITE_EXPONENTIAL) || (_this._releaseShape === _this.FINITE_EXPONENTIAL))) {
-      _this._initialLevel = 1;
-    }
-
-    if ((_this._attackLevel === 0) && (_this._decayShape === _this.FINITE_EXPONENTIAL)) {
-      _this._attackLevel = 1;
-    }
-
-    if ((_this._sustainLevel === 0) && (_this._decayShape === _this.FINITE_EXPONENTIAL)) {
-      _this._sustainLevel = 1;
-    }
-
-    // TODO: shouldn't let finite-exponentials cross 0
-
-    // Update attack rate
+  function updateAttackRate() {
     if (_this._attackTime === 0) {
       _this._attackRate = Number.POSITIVE_INFINITY;
     } else {
       if (_this._attackShape === _this.LINEAR) {
-        _this._attackRate = Math.abs(_this._attackLevel - _this._initialLevel)/_this._attackTime;
-      } else if (_this._attackShape === _this.FINITE_EXPONENTIAL) {
-        _this._attackRate = Math.abs(Math.log(_this._attackLevel/_this._initialLevel))/_this._attackTime;
+        _this._attackRate = Math.abs(_this._attackLevel - INITIAL_LEVEL)/_this._attackTime;
       } else {
         assert(false);
       }
     }
+  }
 
-    // Update decay rate
+  function updateDecayRate() {
     if (_this._decayTime === 0) {
       _this._decayRate = Number.POSITIVE_INFINITY;
     } else {
       if (_this._decayShape === _this.LINEAR) {
-        _this._decayRate = Math.abs(_this._attackLevel - _this._sustainLevel)/_this._decayTime;
-      } else if (_this._decayShape === _this.FINITE_EXPONENTIAL) {
-        _this._decayRate = Math.abs(Math.log(_this._attackLevel/_this._sustainLevel))/_this._decayTime;
-      } else if (_this._decayShape === _this.INFINITE_EXPONENTIAL_APPROACH) {
+        var toLevel;
+        if (_this._mode === 'ADSR') {
+          toLevel = _this._sustainLevel;
+        } else {
+          toLevel = INITIAL_LEVEL;
+        }
+        _this._decayRate = Math.abs(_this._attackLevel - toLevel)/_this._decayTime;
+      } else if (_this._decayShape === _this.EXPONENTIAL) {
         _this._decayRate = 1.0/_this._decayTime;
       } else {
         assert(false);
       }
     }
+  }
 
-    // Update release rate
+  function updateReleaseRate() {
     if (_this._releaseTime === 0) {
       _this._releaseRate = Number.POSITIVE_INFINITY;
     } else {
@@ -110,10 +73,8 @@ function EnvGen(audioContext, targetParam) {
         } else {
           fromLevel = _this._attackLevel;
         }
-        _this._releaseRate = Math.abs(fromLevel - _this._initialLevel)/_this._releaseTime;
-      } else if (_this._releaseShape === _this.FINITE_EXPONENTIAL) {
-        _this._releaseRate = Math.abs(Math.log(fromLevel/_this._initialLevel))/_this._releaseTime;
-      } else if (_this._releaseShape === _this.INFINITE_EXPONENTIAL_APPROACH) {
+        _this._releaseRate = Math.abs(fromLevel - INITIAL_LEVEL)/_this._releaseTime;
+      } else if (_this._releaseShape === _this.EXPONENTIAL) {
         _this._releaseRate = 1.0/_this._releaseTime;
       } else {
         assert(false);
@@ -124,98 +85,109 @@ function EnvGen(audioContext, targetParam) {
   Object.defineProperty(this, 'mode', {
     get: function() { return _this._mode; },
     set: function(value) {
-      _this._mode = value;
-      constrainSettings();
+      if (_this.MODES.indexOf(value) >= 0) {
+        _this._mode = value;
+        updateReleaseRate(); // can depend on mode
+      }
       // TODO: if we switched into AD mode, and we were left in a sustain, we need to fake a gate-off
-    }
-  });
-
-  Object.defineProperty(this, 'initialLevel', {
-    get: function() { return _this._initialLevel; },
-    set: function(value) {
-      _this._initialLevel = value;
-      constrainSettings();
     }
   });
 
   Object.defineProperty(this, 'attackShape', {
     get: function() { return _this._attackShape; },
     set: function(value) {
-      _this._attackShape = value;
-      constrainSettings();
-    }
-  });
-
-  Object.defineProperty(this, 'attackLevel', {
-    get: function() { return _this._attackLevel; },
-    set: function(value) {
-      _this._attackLevel = value;
-      constrainSettings();
+      if (_this.ATTACK_SHAPES.indexOf(value) >= 0) {
+        _this._attackShape = value;
+        updateAttackRate();
+      }
     }
   });
 
   Object.defineProperty(this, 'attackTime', {
     get: function() { return _this._attackTime; },
     set: function(value) {
-      _this._attackTime = value;
-      constrainSettings();
+      if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
+        _this._attackTime = value;
+        updateAttackRate();
+      }
+    }
+  });
+
+  Object.defineProperty(this, 'attackLevel', {
+    get: function() { return _this._attackLevel; },
+    set: function(value) {
+      if ((typeof(value) === 'number') && !isNaN(value)) {
+        _this._attackLevel = value;
+        updateAttackRate();
+      }
     }
   });
 
   Object.defineProperty(this, 'decayShape', {
     get: function() { return _this._decayShape; },
     set: function(value) {
-      _this._decayShape = value;
-      constrainSettings();
+      if (_this.DECAY_SHAPES.indexOf(value) >= 0) {
+        _this._decayShape = value;
+        updateDecayRate();
+      }
     }
   });
 
   Object.defineProperty(this, 'decayTime', {
     get: function() { return _this._decayTime; },
     set: function(value) {
-      _this._decayTime = value;
-      constrainSettings();
+      if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
+        _this._decayTime = value;
+        updateDecayRate();
+      }
     }
   });
 
   Object.defineProperty(this, 'sustainLevel', {
     get: function() { return _this._sustainLevel; },
     set: function(value) {
-      _this._sustainLevel = value;
-      constrainSettings();
+      if ((typeof(value) === 'number') && !isNaN(value)) {
+        _this._sustainLevel = value;
+        updateDecayRate();
+      }
     }
   });
 
   Object.defineProperty(this, 'releaseShape', {
     get: function() { return _this._releaseShape; },
     set: function(value) {
-      _this._releaseShape = value;
-      constrainSettings();
+      if (_this.RELEASE_SHAPES.indexOf(value) >= 0) {
+        _this._releaseShape = value;
+        updateReleaseRate();
+      }
     }
   });
 
   Object.defineProperty(this, 'releaseTime', {
     get: function() { return _this._releaseTime; },
     set: function(value) {
-      _this._releaseTime = value;
-      constrainSettings();
+      if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
+        _this._releaseTime = value;
+        updateReleaseRate();
+      }
     }
   });
 
   // Default settings
   this._mode = 'ADSR';
-  this._initialLevel = 0;
   this._attackShape = this.LINEAR;
-  this._attackLevel = 1.0;
   this._attackTime = 0.5;
-  this._decayShape = this.INFINITE_EXPONENTIAL_APPROACH;
+  this._attackLevel = 1.0;
+  this._decayShape = this.EXPONENTIAL;
   this._decayTime = 1.0;
   this._sustainLevel = 0.5;
-  this._releaseShape = this.INFINITE_EXPONENTIAL_APPROACH;
+  this._releaseShape = this.EXPONENTIAL;
   this._releaseTime = 0.5;
-  constrainSettings();
+  updateAttackRate();
+  updateDecayRate();
+  updateReleaseRate();
 
-  this._targetParam.value = this._initialLevel;
+  this._targetParam.value = INITIAL_LEVEL;
 
   // Each segment has properties:
   //  beginTime: inclusive
@@ -230,11 +202,14 @@ function EnvGen(audioContext, targetParam) {
   // TODO: track current gate state. if mode is changed, might need to do gate-off
 }
 
-EnvGen.prototype.AVAILABLE_MODES = ['AD', 'AR', 'ADSR'];
+EnvGen.prototype.MODES = ['AD', 'ASR', 'ADSR'];
 
 EnvGen.prototype.LINEAR = 'L';
-EnvGen.prototype.FINITE_EXPONENTIAL = 'FE';
-EnvGen.prototype.INFINITE_EXPONENTIAL_APPROACH = 'IEA';
+EnvGen.prototype.EXPONENTIAL = 'E';
+
+EnvGen.prototype.ATTACK_SHAPES = [EnvGen.prototype.LINEAR];
+EnvGen.prototype.DECAY_SHAPES = [EnvGen.prototype.LINEAR, EnvGen.prototype.EXPONENTIAL];
+EnvGen.prototype.RELEASE_SHAPES = [EnvGen.prototype.LINEAR, EnvGen.prototype.EXPONENTIAL];
 
 EnvGen.prototype._computeScheduledValue = function(time) {
   if (!this._scheduledSegments.length) {
@@ -275,10 +250,7 @@ EnvGen.prototype._computeScheduledValue = function(time) {
     // LERP
     // TODO: should be equal to activeSeg.beginValue + activeSeg.rate*(time - activeSeg.beginTime)
     return activeSeg.beginValue + ((time - activeSeg.beginTime)/(activeSeg.endTime - activeSeg.beginTime))*(activeSeg.endValue - activeSeg.beginValue);
-  } else if (activeSeg.shape === this.FINITE_EXPONENTIAL) {
-    // TODO: should be equal to Math.exp(Math.log(activeSeg.beginValue) + activeSeg.rate*(time - activeSeg.beginTime))
-    return activeSeg.beginValue*((time - activeSeg.beginTime)/(activeSeg.endTime - activeSeg.beginTime))*(activeSeg.endValue/activeSeg.beginValue);
-  } else if (activeSeg.shape === this.INFINITE_EXPONENTIAL_APPROACH) {
+  } else if (activeSeg.shape === this.EXPONENTIAL) {
     return activeSeg.endValue + (activeSeg.beginValue - activeSeg.endValue)*Math.exp(activeSeg.rate*(activeSeg.beginTime - time));
   } else {
     assert(false);
@@ -310,12 +282,7 @@ EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
         this._targetParam.linearRampToValueAtTime(endValue, endTime);
         break;
 
-      case this.FINITE_EXPONENTIAL:
-        endTime = lastSeg.endTime + Math.abs(Math.log(endValue/lastSeg.endValue)/rate);
-        this._targetParam.exponentialRampToValueAtTime(endValue, endTime);
-        break;
-
-      case this.INFINITE_EXPONENTIAL_APPROACH:
+      case this.EXPONENTIAL:
         endTime = Number.POSITIVE_INFINITY;
         this._targetParam.setTargetAtTime(endValue, lastSeg.endTime, 1.0/rate);
         break;
@@ -377,7 +344,7 @@ EnvGen.prototype.gate = function(on, time) {
       // Determine target level to which we will decay
       var decayTargetLevel;
       if (this._mode === 'AD') {
-        decayTargetLevel = this._initialLevel;
+        decayTargetLevel = INITIAL_LEVEL;
       } else {
         decayTargetLevel = this._sustainLevel;
       }
@@ -387,7 +354,7 @@ EnvGen.prototype.gate = function(on, time) {
 
     // NOTE: Sustain does not need to be scheduled
   } else {
-    this._scheduleSegment(this.initialLevel, this._releaseShape, this._releaseRate);
+    this._scheduleSegment(INITIAL_LEVEL, this._releaseShape, this._releaseRate);
   }
 };
 

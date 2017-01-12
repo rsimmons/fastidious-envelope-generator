@@ -55,15 +55,14 @@ gateButtonElem.addEventListener('mouseup', function(e) {
 
 // Hook up setting controls
 var SETTINGS = [
-  {name: 'mode', options: [['AD', 'AD'], ['AR', 'AR'], ['ADSR', 'ADSR']]},
-  {name: 'initialLevel'},
-  {name: 'attackShape', options: [[egen.LINEAR, 'linear'], [egen.FINITE_EXPONENTIAL, 'finite exponential']]},
-  {name: 'attackLevel'},
+  {name: 'mode', options: [['AD', 'AD'], ['ASR', 'ASR'], ['ADSR', 'ADSR']]},
+  {name: 'attackShape', options: [[egen.LINEAR, 'linear']]},
   {name: 'attackTime'},
-  {name: 'decayShape', options: [[egen.LINEAR, 'linear'], [egen.FINITE_EXPONENTIAL, 'finite exponential'], [egen.INFINITE_EXPONENTIAL_APPROACH, 'infinite exponential approach']]},
+  {name: 'attackLevel'},
+  {name: 'decayShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
   {name: 'decayTime'},
   {name: 'sustainLevel'},
-  {name: 'releaseShape', options: [[egen.LINEAR, 'linear'], [egen.FINITE_EXPONENTIAL, 'finite exponential'], [egen.INFINITE_EXPONENTIAL_APPROACH, 'infinite exponential approach']]},
+  {name: 'releaseShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
   {name: 'releaseTime'},
 ];
 
