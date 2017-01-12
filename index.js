@@ -49,7 +49,7 @@ function EnvGen(audioContext, targetParam) {
       if (_this._decayShape === _this.LINEAR) {
         var toLevel;
         if (_this._mode === 'ADSR') {
-          toLevel = _this._sustainLevel;
+          toLevel = _this._sustainFraction*_this._attackLevel;
         } else {
           toLevel = INITIAL_LEVEL;
         }
@@ -69,7 +69,7 @@ function EnvGen(audioContext, targetParam) {
       if (_this._releaseShape === _this.LINEAR) {
         var fromLevel;
         if (_this._mode === 'ADSR') {
-          fromLevel = _this._sustainLevel;
+          fromLevel = _this._sustainFraction*_this._attackLevel;
         } else {
           fromLevel = _this._attackLevel;
         }
@@ -147,11 +147,11 @@ function EnvGen(audioContext, targetParam) {
     }
   });
 
-  Object.defineProperty(this, 'sustainLevel', {
-    get: function() { return _this._sustainLevel; },
+  Object.defineProperty(this, 'sustainFraction', {
+    get: function() { return _this._sustainFraction; },
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value)) {
-        _this._sustainLevel = value;
+        _this._sustainFraction = value;
         updateDecayRate();
       }
     }
@@ -184,7 +184,7 @@ function EnvGen(audioContext, targetParam) {
   this._attackLevel = 1.0;
   this._decayShape = this.EXPONENTIAL;
   this._decayTime = 1.0;
-  this._sustainLevel = 0.5;
+  this._sustainFraction = 0.5;
   this._releaseShape = this.EXPONENTIAL;
   this._releaseTime = 0.5;
   updateAttackRate();
@@ -361,7 +361,7 @@ EnvGen.prototype.gate = function(on, time) {
       if (this._mode === 'AD') {
         decayTargetLevel = INITIAL_LEVEL;
       } else {
-        decayTargetLevel = this._sustainLevel;
+        decayTargetLevel = this._sustainFraction*this._attackLevel;
       }
 
       this._scheduleSegment(decayTargetLevel, this._decayShape, this._decayRate);

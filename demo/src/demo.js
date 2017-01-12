@@ -61,7 +61,7 @@ var SETTINGS = [
   {name: 'attackLevel'},
   {name: 'decayShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
   {name: 'decayTime'},
-  {name: 'sustainLevel'},
+  {name: 'sustainFraction'},
   {name: 'releaseShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
   {name: 'releaseTime'},
 ];
