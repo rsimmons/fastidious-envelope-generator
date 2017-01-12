@@ -1,4 +1,4 @@
-# fastidious-envelope-generator
+# Fastidious-envelope-generator
 
 **WARNING: Fastidious-envelope-generator is not yet ready for public consumption, the API is still a-changin'.**
 
@@ -7,6 +7,45 @@
 **Fastidious-envelope-generator** is an envelope generator (aka ADSR) for the Web Audio API that aims to be free of artifacts and handle edge cases well.
 
 [Check out the demo](https://rsimmons.github.io/fastidious-envelope-generator/).
+
+## Installation
+
+*NPM package coming soon*
+
+## API
+
+#### `new EnvGen(audioContext, targetParam)`
+
+Instantiate a new envelope generator
+
+- `audioContext`: Web Audio `AudioContext` object
+- `targetParam`: `AudioParam` object to which envelope automation should be applied. There should be no other callers applying automation to the same `AudioParam` or all hell will break loose.
+
+#### `.gate(on, time)`
+
+Notify the envelope generator that its input gate is going on or off (aka high or low).
+
+- `on`: `true` for gate on/high, `false` for gate off/low
+- `time`: Optional indication of time when gate change is to take effect. If omitted, the gate change happens "now". If supplied, the time should be in the same coordinates as `AudioContext.currentTime` and >= that `currentTime`. Supplied gate times must be monotonically increasing, i.e. it's not allowed to schedule gates at times earlier than other gates that have already been scheduled.
+
+#### `.gateOn(time)`
+
+Convenience method that is equivalent to `.gate(true, time)`.
+
+#### `.gateOff(time)`
+
+Convenience method that is equivalent to `.gate(false, time)`.
+
+#### `.mode`
+
+The current mode or style of envelope being generated. Changes to this property will not take effect until after any current scheduled gate changes. Valid values are:
+- `'AD'`: Attack-decay envelope. The envelope will attack from 0 to `attackLevel`, and then immediately decay back to 0. It has no sustain, and will always complete its full attack phase even if a gate-off arrives during it. This means that it ignores gate-off changes completely, and the width of incoming gates is irrelevant. This behavior is sometimes referred to as a "trigger" style envelope, and is useful for percussive sounds.
+- `'ASR'`: Attack-sustain-release envelope, also known as an AR envelope. This envelope will attack from 0 to `attackLevel`, sustain at `attackLevel` for as long as the gate is held on, and then when the gate goes off will release back to 0. If the gate goes off during the attack, it will immediately transition to the release phase. Because the sustain will always be at full `attackLevel`, the `sustainFraction` setting is irrelevant for this mode.
+- `'ADSR'`: Attack-decay-sustain-release envelope. This envelope will attack from 0 to `attackLevel`, and then immediately decay to the sustain level for as long as the gate is held on. When the gate goes off it will release back to 0. If the gate goes off during the attack or decay phases, it will immediately transition to the release phase. The sustain level is determined by the product of `attackLevel` and `sustainFraction`, and hence the sustain level will always be closer to 0 than the attack level.
+
+#### `.MODES`
+
+Array of valid `.mode` settings.
 
 ## Background
 
