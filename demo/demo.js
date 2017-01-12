@@ -1,6 +1,6 @@
 'use strict';
 
-var EnvGen = require('./index');
+var EnvGen = require('../index');
 var createGrapher = require('./grapher');
 
 var audioContext = new (window.AudioContext || window.webkitAudioContext)();

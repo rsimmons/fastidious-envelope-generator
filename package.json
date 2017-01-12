@@ -7,10 +7,7 @@
   "author": "Russel Simmons <russ@rsimmons.org>",
   "license": "MIT",
   "scripts": {
-    "build": "webpack ./demo.js bundle.js --progress --colors --optimize-minimize",
-    "watch": "webpack ./demo.js bundle.js --progress --colors --watch"
   },
   "devDependencies": {
-    "webpack": "^1.14.0"
   }
 }
