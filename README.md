@@ -6,7 +6,7 @@
 
 **Fastidious-envelope-generator** is an envelope generator (aka ADSR) for the Web Audio API that aims to be free of artifacts and handle edge cases well.
 
-*TODO: demo link*
+[Check out the demo](https://rsimmons.github.io/fastidious-envelope-generator/).
 
 ## Background
 
