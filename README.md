@@ -12,6 +12,18 @@
 
 *NPM package coming soon*
 
+## Background
+
+Have you heard about the [Web Audio API](https://webaudio.github.io/web-audio-api/)? It's this fantastic new API that lets you do sophisticated audio processing in the browser. One particularly important building block for audio synthesis is called an *envelope generator* (aka ADSR), and the API helpfully includes "automation" methods (`AudioParam.linearRampToValueAtTime()`, etc.) to make it easy to build those.
+
+And if you build an envelope generator using those handy methods, it will sound good, being free of any weird pops or other sonic artifacts. ... Right?
+
+**Sadly, no**. It turns out that it is rather tricky to build a well-behaved envelope generator given the API at the time of this writing (January 2017). There are several other envelope generators on GitHub, but as far as I know they all have the issue that if a new envelope (gate-on) is started when a previous one is still playing, there will be a discontinuity that may result in a very audible click. (*please hit me up if you know of any that avoid this issue!*)
+
+The authors of the API seem to be aware of this problem, and have spec'd an important new method called `cancelAndHoldAtTime` that will improve the situation, but that method is not yet implemented by any browsers. And even with that method, naively-coded envelope generators will still sound slightly off compared to those in most synthesizers, for reasons I will outline in more detail below.
+
+So long story short, I really wanted a Web Audio envelope generator that worked correctly and handled all the various edge cases and so I tried to make one and it was not fun to make but I did it anyways and without further ado I humbly present to you (*snare rush, please*): **Fastidious Envelope Generator**.
+
 ## API
 
 #### `new EnvGen(audioContext, targetParam)`
@@ -19,7 +31,7 @@
 Instantiate a new envelope generator
 
 - `audioContext`: Web Audio `AudioContext` object
-- `targetParam`: `AudioParam` object to which envelope automation should be applied. There should be no other callers applying automation to the same `AudioParam` or all hell will break loose.
+- `targetParam`: `AudioParam` to which envelope automation should be applied. There should be no other callers applying automation to the same `AudioParam` or all hell will break loose.
 
 #### `.gate(on, time)`
 
@@ -43,18 +55,50 @@ The current mode or style of envelope being generated. Changes to this property 
 - `'ASR'`: Attack-sustain-release envelope, also known as an AR envelope. This envelope will attack from 0 to `attackLevel`, sustain at `attackLevel` for as long as the gate is held on, and then when the gate goes off will release back to 0. If the gate goes off during the attack, it will immediately transition to the release phase. Because the sustain will always be at full `attackLevel`, the `sustainFraction` setting is irrelevant for this mode.
 - `'ADSR'`: Attack-decay-sustain-release envelope. This envelope will attack from 0 to `attackLevel`, and then immediately decay to the sustain level for as long as the gate is held on. When the gate goes off it will release back to 0. If the gate goes off during the attack or decay phases, it will immediately transition to the release phase. The sustain level is determined by the product of `attackLevel` and `sustainFraction`, and hence the sustain level will always be closer to 0 than the attack level.
 
+#### `.attackShape`
+
+Shape of the attack phase. Currently this is fixed to be `.LINEAR`, but other shapes may be supported in the future.
+
+#### `.attackRate`
+
+The speed with which the attack phase will transition to `.attackLevel`. Must be > 0.
+
+#### `.attackLevel`
+
+Value to which the envelope will transition during the attack phase. May be positive, negative, or even zero.
+
+#### `.decayShape`
+
+Shape of the decay phase. May be `.LINEAR` or `.EXPONENTIAL`.
+
+#### `.decayRate`
+
+The speed with which the decay phase will transition to the sustain level (in ADSR mode) or 0 (in AD mode). Must be > 0.
+
+#### `.sustainFraction`
+
+In ADSR mode, the sustain level is determined by the product of `.sustainFraction` and `.attackLevel`. Must be >= 0 and <= 1.
+
+#### `.releaseShape`
+
+Shape of the release phase. May be `.LINEAR` or `.EXPONENTIAL`.
+
+#### `.releaseRate`
+
+The speed with which the release phase will transition to 0. Must be > 0.
+
 #### `.MODES`
 
 Array of valid `.mode` settings.
 
-## Background
+#### `.ATTACK_SHAPES`
 
-Have you heard about the [Web Audio API](https://webaudio.github.io/web-audio-api/)? It's this fantastic new API that lets you do sophisticated audio processing in the browser. One particularly important building block for audio synthesis is called an *envelope generator* (aka ADSR), and the API helpfully includes "automation" methods (`AudioParam.linearRampToValueAtTime()`, etc.) to make it easy to build those.
+Array of valid `.attackShape` settings.
 
-And if you build an envelope generator using those handy methods, it will sound good, being free of any weird pops or other sonic artifacts. ... Right?
+#### `.DECAY_SHAPES`
 
-**Sadly, no**. It turns out that it is rather tricky to build a well-behaved envelope generator given the API at the time of this writing (January 2017). There are several other envelope generators on GitHub, but as far as I know they all have the issue that if a new envelope (gate-on) is started when a previous one is still playing, there will be a discontinuity that may result in a very audible click. (*please hit me up if you know of any that avoid this issue!*)
+Array of valid `.decayShape` settings.
 
-The authors of the API seem to be aware of this problem, and have spec'd an important new method called `cancelAndHoldAtTime` that will improve the situation, but that method is not yet implemented by any browsers. And even with that method, naively-coded envelope generators will still sound slightly off compared to those in most synthesizers, for reasons I will outline in more detail below.
+#### `.RELEASE_SHAPES`
 
-So long story short, I really wanted a Web Audio envelope generator that worked correctly and handled all the various edge cases and so I tried to make one and it was not fun to make but I did it anyways and without further ado I humbly present to you (*snare rush, please*): **Fastidious Envelope Generator**.
+Array of valid `.releaseShape` settings.
