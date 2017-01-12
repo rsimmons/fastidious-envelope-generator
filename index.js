@@ -86,10 +86,14 @@ function EnvGen(audioContext, targetParam) {
     get: function() { return _this._mode; },
     set: function(value) {
       if (_this.MODES.indexOf(value) >= 0) {
+        // If we're currently in a 'sustain' state, and we switched into AD mode,
+        // we would get stuck in sustain state. So just to be safe, whenever mode
+        // is changed we fake a gate-off signal.
+        _this.gate(false, nextFloat(Math.max(this._lastGateTime, audioContext.currentTime)));
+
         _this._mode = value;
         updateReleaseRate(); // can depend on mode
       }
-      // TODO: if we switched into AD mode, and we were left in a sustain, we need to fake a gate-off
     }
   });
 
@@ -198,8 +202,9 @@ function EnvGen(audioContext, targetParam) {
   //  rate: abs(slope-of-value) for LINEAR, abs(slope-of-log(value)) for EXPONENTIAL shapes
   this._scheduledSegments = [];
 
-  // TODO: track last gate time for sanity checking
-  // TODO: track current gate state. if mode is changed, might need to do gate-off
+  // Track info about last gate we received
+  this._lastGateTime = audioContext.currentTime;
+  this._lastGateState = false;
 }
 
 EnvGen.prototype.MODES = ['AD', 'ASR', 'ADSR'];
@@ -303,16 +308,26 @@ EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
 };
 
 EnvGen.prototype.gate = function(on, time) {
-  // Special case: In AD mode, we ignore gate-off
-  if ((this._mode === 'AD') && !on) {
-    return;
-  }
-
   // Note the current AudioContext time
   var ct = this._audioContext.currentTime;
 
   // Default time parameter to current time
   time = (time === undefined) ? ct : time;
+
+  if (time < this._lastGateTime) {
+    // Gates can only have times >= the times of previously supplied gates.
+    // If we receive a bad one, log a warning and ignore
+    console.warn('Received gate with time earlier than a previous gate');
+    return;
+  }
+
+  this._lastGateTime = time;
+  this._lastGateState = on;
+
+  // Special case: In AD mode, we ignore gate-off
+  if ((this._mode === 'AD') && !on) {
+    return;
+  }
 
   // TODO: verify that time is greater than any previous gate times?
 
