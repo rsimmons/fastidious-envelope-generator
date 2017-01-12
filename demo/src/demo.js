@@ -57,13 +57,13 @@ gateButtonElem.addEventListener('mouseup', function(e) {
 var SETTINGS = [
   {name: 'mode', options: [['AD', 'AD'], ['ASR', 'ASR'], ['ADSR', 'ADSR']]},
   {name: 'attackShape', options: [[egen.LINEAR, 'linear']]},
-  {name: 'attackTime', min: 0},
+  {name: 'attackRate', min: 0},
   {name: 'attackLevel'},
   {name: 'decayShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
-  {name: 'decayTime', min: 0},
+  {name: 'decayRate', min: 0},
   {name: 'sustainFraction', min: 0, max: 1},
   {name: 'releaseShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
-  {name: 'releaseTime', min: 0},
+  {name: 'releaseRate', min: 0},
 ];
 
 var settingsElem = document.querySelector('#settings');

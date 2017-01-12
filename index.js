@@ -30,58 +30,6 @@ function EnvGen(audioContext, targetParam) {
 
   var _this = this;
 
-  function updateAttackRate() {
-    if (_this._attackTime === 0) {
-      _this._attackRate = Number.POSITIVE_INFINITY;
-    } else {
-      if (_this._attackShape === _this.LINEAR) {
-        _this._attackRate = Math.abs(_this._attackLevel - INITIAL_LEVEL)/_this._attackTime;
-      } else {
-        assert(false);
-      }
-    }
-  }
-
-  function updateDecayRate() {
-    if (_this._decayTime === 0) {
-      _this._decayRate = Number.POSITIVE_INFINITY;
-    } else {
-      if (_this._decayShape === _this.LINEAR) {
-        var toLevel;
-        if (_this._mode === 'ADSR') {
-          toLevel = _this._sustainFraction*_this._attackLevel;
-        } else {
-          toLevel = INITIAL_LEVEL;
-        }
-        _this._decayRate = Math.abs(_this._attackLevel - toLevel)/_this._decayTime;
-      } else if (_this._decayShape === _this.EXPONENTIAL) {
-        _this._decayRate = 1.0/_this._decayTime;
-      } else {
-        assert(false);
-      }
-    }
-  }
-
-  function updateReleaseRate() {
-    if (_this._releaseTime === 0) {
-      _this._releaseRate = Number.POSITIVE_INFINITY;
-    } else {
-      if (_this._releaseShape === _this.LINEAR) {
-        var fromLevel;
-        if (_this._mode === 'ADSR') {
-          fromLevel = _this._sustainFraction*_this._attackLevel;
-        } else {
-          fromLevel = _this._attackLevel;
-        }
-        _this._releaseRate = Math.abs(fromLevel - INITIAL_LEVEL)/_this._releaseTime;
-      } else if (_this._releaseShape === _this.EXPONENTIAL) {
-        _this._releaseRate = 1.0/_this._releaseTime;
-      } else {
-        assert(false);
-      }
-    }
-  }
-
   Object.defineProperty(this, 'mode', {
     get: function() { return _this._mode; },
     set: function(value) {
@@ -92,7 +40,6 @@ function EnvGen(audioContext, targetParam) {
         _this.gate(false, nextFloat(Math.max(this._lastGateTime, audioContext.currentTime)));
 
         _this._mode = value;
-        updateReleaseRate(); // can depend on mode
       }
     }
   });
@@ -102,17 +49,15 @@ function EnvGen(audioContext, targetParam) {
     set: function(value) {
       if (_this.ATTACK_SHAPES.indexOf(value) >= 0) {
         _this._attackShape = value;
-        updateAttackRate();
       }
     }
   });
 
-  Object.defineProperty(this, 'attackTime', {
-    get: function() { return _this._attackTime; },
+  Object.defineProperty(this, 'attackRate', {
+    get: function() { return _this._attackRate; },
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
-        _this._attackTime = value;
-        updateAttackRate();
+        _this._attackRate = value;
       }
     }
   });
@@ -122,7 +67,6 @@ function EnvGen(audioContext, targetParam) {
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value)) {
         _this._attackLevel = value;
-        updateAttackRate();
       }
     }
   });
@@ -132,17 +76,15 @@ function EnvGen(audioContext, targetParam) {
     set: function(value) {
       if (_this.DECAY_SHAPES.indexOf(value) >= 0) {
         _this._decayShape = value;
-        updateDecayRate();
       }
     }
   });
 
-  Object.defineProperty(this, 'decayTime', {
-    get: function() { return _this._decayTime; },
+  Object.defineProperty(this, 'decayRate', {
+    get: function() { return _this._decayRate; },
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
-        _this._decayTime = value;
-        updateDecayRate();
+        _this._decayRate = value;
       }
     }
   });
@@ -152,7 +94,6 @@ function EnvGen(audioContext, targetParam) {
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0) && (value <= 1)) {
         _this._sustainFraction = value;
-        updateDecayRate();
       }
     }
   });
@@ -162,17 +103,15 @@ function EnvGen(audioContext, targetParam) {
     set: function(value) {
       if (_this.RELEASE_SHAPES.indexOf(value) >= 0) {
         _this._releaseShape = value;
-        updateReleaseRate();
       }
     }
   });
 
-  Object.defineProperty(this, 'releaseTime', {
-    get: function() { return _this._releaseTime; },
+  Object.defineProperty(this, 'releaseRate', {
+    get: function() { return _this._releaseRate; },
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
-        _this._releaseTime = value;
-        updateReleaseRate();
+        _this._releaseRate = value;
       }
     }
   });
@@ -180,16 +119,13 @@ function EnvGen(audioContext, targetParam) {
   // Default settings
   this._mode = 'ADSR';
   this._attackShape = this.LINEAR;
-  this._attackTime = 0.5;
+  this._attackRate = 2;
   this._attackLevel = 1.0;
   this._decayShape = this.EXPONENTIAL;
-  this._decayTime = 1.0;
+  this._decayRate = 1;
   this._sustainFraction = 0.5;
   this._releaseShape = this.EXPONENTIAL;
-  this._releaseTime = 0.5;
-  updateAttackRate();
-  updateDecayRate();
-  updateReleaseRate();
+  this._releaseRate = 1;
 
   this._targetParam.value = INITIAL_LEVEL;
 
