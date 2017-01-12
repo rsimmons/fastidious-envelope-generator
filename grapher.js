@@ -58,6 +58,14 @@ function createGrapher(audioContext, canvasElem, samplesPerPoint) {
     canvasCtx.fillStyle = 'rgb(0, 0, 0)';
     canvasCtx.fillRect(0, 0, canvasElem.width, canvasElem.height);
 
+    // Draw x axis
+    var zeroY = canvasElem.height*(1 + minY/(maxY-minY))
+    canvasCtx.strokeStyle = 'rgb(0, 0, 255)';
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(0, zeroY);
+    canvasCtx.lineTo(canvasElem.width, zeroY);
+    canvasCtx.stroke();
+
     drawData(graphDataMin, 'rgb(100, 255, 0)');
     drawData(graphDataMax, 'rgb(0, 255, 100)');
 
