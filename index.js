@@ -150,7 +150,7 @@ function EnvGen(audioContext, targetParam) {
   Object.defineProperty(this, 'sustainFraction', {
     get: function() { return _this._sustainFraction; },
     set: function(value) {
-      if ((typeof(value) === 'number') && !isNaN(value)) {
+      if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0) && (value <= 1)) {
         _this._sustainFraction = value;
         updateDecayRate();
       }
