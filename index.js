@@ -56,7 +56,7 @@ function EnvGen(audioContext, targetParam) {
   Object.defineProperty(this, 'attackRate', {
     get: function() { return _this._attackRate; },
     set: function(value) {
-      if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
+      if ((typeof(value) === 'number') && !isNaN(value) && (value > 0)) {
         _this._attackRate = value;
       }
     }
@@ -83,7 +83,7 @@ function EnvGen(audioContext, targetParam) {
   Object.defineProperty(this, 'decayRate', {
     get: function() { return _this._decayRate; },
     set: function(value) {
-      if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
+      if ((typeof(value) === 'number') && !isNaN(value) && (value > 0)) {
         _this._decayRate = value;
       }
     }
@@ -110,7 +110,7 @@ function EnvGen(audioContext, targetParam) {
   Object.defineProperty(this, 'releaseRate', {
     get: function() { return _this._releaseRate; },
     set: function(value) {
-      if ((typeof(value) === 'number') && !isNaN(value) && (value >= 0)) {
+      if ((typeof(value) === 'number') && !isNaN(value) && (value > 0)) {
         _this._releaseRate = value;
       }
     }
