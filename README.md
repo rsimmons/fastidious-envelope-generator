@@ -12,6 +12,37 @@
 
 *NPM package coming soon*
 
+## Example
+
+```js
+var EnvGen = require('fastidious-envelope-generator');
+
+var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+// Create nodes
+var oscNode = audioContext.createOscillator();
+oscNode.start();
+
+var vcaNode = audioContext.createGain();
+
+// Connect up node graph
+oscNode.connect(vcaNode);
+vcaNode.connect(audioContext.destination);
+
+// Instantiate envelope generator, leaving some settings as defaults
+var eg = new EnvGen(audioContext, vcaNode.gain);
+eg.mode = 'ASR';
+eg.attackRate = 100;
+eg.releaesRate = 50;
+
+// Every second, schedule a gate cycle a little bit in the future
+setInterval(function() {
+  var t = audioContext.currentTime;
+  eg.gateOn(t + 0.1);
+  eg.gateOff(t + 0.4);
+}, 1000);
+```
+
 ## Background
 
 Have you heard about the [Web Audio API](https://webaudio.github.io/web-audio-api/)? It's this fantastic new API that lets you do sophisticated audio processing in the browser. One particularly important building block for audio synthesis is called an *envelope generator* (aka ADSR), and the API helpfully includes "automation" methods (`AudioParam.linearRampToValueAtTime()`, etc.) to make it easy to build those.
