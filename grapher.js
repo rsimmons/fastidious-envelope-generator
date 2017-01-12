@@ -1,7 +1,7 @@
 
 function createGrapher(audioContext, canvasElem, samplesPerPoint) {
   var graphPoints = canvasElem.width;
-  var minY = 0;
+  var minY = -1;
   var maxY = 1.0;
 
   var graphDataMin = new Float32Array(graphPoints);
