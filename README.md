@@ -10,9 +10,9 @@
 
 ## Background
 
-Have you heard about the [Web Audio API](https://webaudio.github.io/web-audio-api/)? It's this fantastic new API that lets you do sophisticated audio processing in the browser. One particularly important building block for audio synthesis is called an *envelope generator*, and the API helpfully includes "automation" methods (`AudioParam.linearRampToValueAtTime()`, etc.) to make it easy to build those.
+Have you heard about the [Web Audio API](https://webaudio.github.io/web-audio-api/)? It's this fantastic new API that lets you do sophisticated audio processing in the browser. One particularly important building block for audio synthesis is called an *envelope generator* (aka ADSR), and the API helpfully includes "automation" methods (`AudioParam.linearRampToValueAtTime()`, etc.) to make it easy to build those.
 
-And if you build an *envelope generator* using those handy methods, it will sound good, being free of any weird pops or other sonic artifacts. ... Right?
+And if you build an envelope generator using those handy methods, it will sound good, being free of any weird pops or other sonic artifacts. ... Right?
 
 **Sadly, no**. It turns out that it is rather tricky to build a well-behaved envelope generator given the API at the time of this writing (January 2017). There are several other envelope generators on GitHub, but as far as I know they all have the issue that if a new envelope (gate-on) is started when a previous one is still playing, there will be a discontinuity that may result in a very audible click. (*please hit me up if you know of any that avoid this issue!*)
 
