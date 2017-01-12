@@ -57,13 +57,13 @@ gateButtonElem.addEventListener('mouseup', function(e) {
 var SETTINGS = [
   {name: 'mode', options: [['AD', 'AD'], ['ASR', 'ASR'], ['ADSR', 'ADSR']]},
   {name: 'attackShape', options: [[egen.LINEAR, 'linear']]},
-  {name: 'attackTime'},
+  {name: 'attackTime', min: 0},
   {name: 'attackLevel'},
   {name: 'decayShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
-  {name: 'decayTime'},
-  {name: 'sustainFraction'},
+  {name: 'decayTime', min: 0},
+  {name: 'sustainFraction', min: 0, max: 1},
   {name: 'releaseShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
-  {name: 'releaseTime'},
+  {name: 'releaseTime', min: 0},
 ];
 
 var settingsElem = document.querySelector('#settings');
@@ -88,6 +88,12 @@ function addSetting(setting) {
     controlElem = document.createElement('input');
     controlElem.type = 'number';
     controlElem.step = 'any';
+    if (setting.hasOwnProperty('min')) {
+      controlElem.min = setting.min;
+    }
+    if (setting.hasOwnProperty('max')) {
+      controlElem.max = setting.max;
+    }
   }
 
   controlElem.value = egen[setting.name];
