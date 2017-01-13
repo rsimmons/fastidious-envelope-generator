@@ -8,7 +8,9 @@
 
 ## Installation
 
-*NPM package coming soon*
+```bash
+$ npm install fastidious-envelope-generator`
+```
 
 ## Example
 
