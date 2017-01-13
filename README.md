@@ -53,6 +53,18 @@ The authors of the API seem to be aware of this problem, and have spec'd an impo
 
 So long story short, I really wanted a Web Audio envelope generator that worked correctly and handled all the various edge cases and so I tried to make one and it was not fun to make but I did it anyways and without further ado I humbly present to you (*snare rush, please*): **Fastidious Envelope Generator**.
 
+## Continuity, Shapes, Rates
+
+The most important feature of Fastidious is that if a new envelope is started when an old one is still in progress, there will be no unwanted discontinuity. The new envelope will start from where the old one is interrupted. This is how almost all analog synthesizer envelopes work, and usually sounds better than the alternative of restarting the new attack from zero. Abruptly transitioning an envelope to zero will likely cause an audible click if the envelope is not already very low.
+
+Most software synthesizers let you specify a **time** for each envelope phase. Fastidious instead has you specify a **rate**, the speed with which that phase transitions to its target value. This makes more sense given that envelopes may start from where an old one left off. If a new attack starts when the value is already quite high, it sounds more natural for the attack to proceed at the same **rate** as normal (taking shorter time), vs. taking its specified time (and hence having a lower rate). Also, specifing by rate makes more sense if the phase has an exponential approach shape, in which case the length of the transition is theoretically infinte (it asymptotically appraoches its target value).
+
+Fastidious currently allows for two different types of shapes for each phase: linear and exponential (currently, the attack phase can only be linear).
+
+The *linear* shape is pretty self-explanatory: the value transitions towards its target at the given rate (value units per second). If you're familiar with the Web Audio API, you'll known that a linear transition is naturally implemented with the `linearRampToValueAtTime()` method.
+
+The *exponential* shape is a little more interesting. For Fastidious, an exponential shape means that the distance between the value and its target decreases at an exponential rate. In other words, each second the distance between the value and its target get divided by a constant amount. This results in an asymptotic approach where the value never reaches its target. This shape tends to sound good for amplitude decay and release phases, giving a natural fade out. If the shape of a phase is set to exponential, then each second the distance to target decreases by a factor of `exp(rate)`. This is implemented via the Web Audio API method `setTargetAtTime`, (**not** `exponentialRampToValueAtTime`, which has a different purpose).
+
 ## API
 
 #### `new EnvGen(audioContext, targetParam)`
