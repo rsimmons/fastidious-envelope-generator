@@ -53,6 +53,16 @@ gateButtonElem.addEventListener('mouseup', function(e) {
   egen.gateOff();
 });
 
+document.querySelector('#gate-on-button').addEventListener('click', function(e) {
+  e.preventDefault();
+  egen.gateOn();
+});
+
+document.querySelector('#gate-off-button').addEventListener('click', function(e) {
+  e.preventDefault();
+  egen.gateOff();
+});
+
 // Hook up setting controls
 var SETTINGS = [
   {name: 'mode', options: [['AD', 'AD'], ['ASR', 'ASR'], ['ADSR', 'ADSR']]},

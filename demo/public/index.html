@@ -29,7 +29,7 @@ input:invalid {
   margin-bottom: 10px;
 }
 
-#gate-button {
+button {
   font-family: sans-serif;
   border: 1px solid #888;
   font-size: 18px;
@@ -38,11 +38,11 @@ input:invalid {
   border-radius: 5px;
 }
 
-#gate-button:hover {
+button:hover {
   background-color: #ddd;
 }
 
-#gate-button:active {
+button:active {
   background-color: #999;
 }
 
@@ -58,7 +58,9 @@ input:invalid {
       <canvas id="env-graph" width="512" height="256"></canvas>
       <div id="controls">
         <div id="gate-controls">
-            <button id="gate-button">Gate</button>
+            <button id="gate-button">Gate<br><em>(press and hold)</em></button>
+            <button id="gate-on-button">Gate<br>On</button>
+            <button id="gate-off-button">Gate<br>Off</button>
         </div>
         <div id="settings">
         </div>
