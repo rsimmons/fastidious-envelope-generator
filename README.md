@@ -63,7 +63,7 @@ Fastidious currently allows for two different types of shapes for each phase: li
 
 The *linear* shape is pretty self-explanatory: the value transitions towards its target at the given rate (value units per second). If you're familiar with the Web Audio API, you'll known that a linear transition is naturally implemented with the `linearRampToValueAtTime()` method.
 
-The *exponential* shape is a little more interesting. For Fastidious, an exponential shape means that the distance between the value and its target decreases at an exponential rate. In other words, each second the distance between the value and its target get divided by a constant amount. This results in an asymptotic approach where the value never reaches its target. This shape tends to sound good for amplitude decay and release phases, giving a natural fade out. If the shape of a phase is set to exponential, then each second the distance to target decreases by a factor of `exp(rate)`. This is implemented via the Web Audio API method `setTargetAtTime`, (**not** `exponentialRampToValueAtTime`, which has a different purpose).
+The *exponential* shape is a little more interesting. For Fastidious, an exponential shape means that the distance between the value and its target decreases at an exponential rate. In other words, each second the distance between the value and its target get divided by a constant amount. This results in an asymptotic approach where the value never reaches its target. This shape tends to sound good for amplitude decay and release phases, giving a natural fade out. If the shape of a phase is set to exponential, then each second the distance to target decreases by a factor of `exp(rate)`. This is implemented via the Web Audio API method `setTargetAtTime`, (**not** `exponentialRampToValueAtTime`, which sounds relevant but has a different purpose).
 
 ## API
 
@@ -80,6 +80,8 @@ Notify the envelope generator that its input gate is going on or off (aka high o
 
 - `on`: `true` for gate on/high, `false` for gate off/low
 - `time`: Optional indication of time when gate change is to take effect. If omitted, the gate change happens "now". If supplied, the time should be in the same coordinates as `AudioContext.currentTime` and >= that `currentTime`. Supplied gate times must be monotonically increasing, i.e. it's not allowed to schedule gates at times earlier than other gates that have already been scheduled.
+
+Note: It is OK to send an 'on' followed by another 'on', or an 'off' followed by another 'off'. If an 'on' is sent when the last gate already 'on', then the envelope will behave as if there was an 'off' an infinitesimal time before the new 'on' (and vice verse for 'off' followed by 'off'). In some cases this will have no effect. But it can be useful e.g. in AD mode to only send gate-on notifications to trigger successive notes, without needing to ever send gate-offs.
 
 #### `.gateOn(time)`
 
