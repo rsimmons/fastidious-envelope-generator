@@ -2,12 +2,17 @@
   "name": "fastidious-envelope-generator",
   "version": "0.1.0",
   "private": true,
-  "description": "Web Audio API-based envelope generator that tries to handle edge cases correctly",
+  "description": "Envelope generator (aka ADSR) for the Web Audio API that tries to be well-behaved and artifact-free",
   "main": "index.js",
   "author": "Russel Simmons <russ@rsimmons.org>",
   "license": "MIT",
-  "scripts": {
+  "repository": {
+    "url": "https://github.com/rsimmons/fastidious-envelope-generator",
+    "type": "git"
   },
-  "devDependencies": {
-  }
+  "homepage": "https://github.com/rsimmons/fastidious-envelope-generator",
+  "keywords": ["webaudio", "web-audio", "audio", "envelope", "adsr", "envelope-generator", "envgen"],
+  "files": [
+    "index.js"
+  ]
 }
