@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Fastidious-envelope-generator** is an envelope generator (aka ADSR) for the Web Audio API that aims to be free of artifacts and handle edge cases well.
+**Fastidious** is an envelope generator (aka ADSR) for the Web Audio API that aims to be free of artifacts and handle edge cases well. Most notably, if a new envelope begins when an old one is still in progress, it picks up from where the old one left off so that there are no discontinuities.
 
 [Check out the demo](https://rsimmons.github.io/fastidious-envelope-generator/).
 
@@ -55,7 +55,7 @@ So long story short, I really wanted a Web Audio envelope generator that worked 
 
 ## Continuity, Shapes, Rates
 
-The most important feature of Fastidious is that if a new envelope is started when an old one is still in progress, there will be no unwanted discontinuity. The new envelope will start from where the old one is interrupted. This is how almost all analog synthesizer envelopes work, and usually sounds better than the alternative of restarting the new attack from zero. Abruptly transitioning an envelope to zero will likely cause an audible click if the envelope is not already very low.
+The most important feature of Fastidious is that if a new envelope is started when an old one is still in progress, there will be no unwanted discontinuity. The new envelope will start from where the old one is interrupted. This is how almost all analog synthesizer envelopes work, and usually sounds better than the alternative of restarting the new attack from zero. Abruptly transitioning an envelope to zero will likely cause an audible click if the envelope is not already at a low value.
 
 Most software synthesizers let you specify a **time** for each envelope phase. Fastidious instead has you specify a **rate**, the speed with which that phase transitions to its target value. This makes more sense given that envelopes may start from where an old one left off. If a new attack starts when the value is already quite high, it sounds more natural for the attack to proceed at the same **rate** as normal (taking shorter time), vs. taking its specified time (and hence having a lower rate). Also, specifing by rate makes more sense if the phase has an exponential approach shape, in which case the length of the transition is theoretically infinte (it asymptotically appraoches its target value).
 
