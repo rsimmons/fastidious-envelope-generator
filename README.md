@@ -100,37 +100,39 @@ The current mode or style of envelope being generated. Changes to this property 
 - `'ASR'`: Attack-sustain-release envelope, also known as an AR envelope. This envelope will attack from 0 to `attackLevel`, sustain at `attackLevel` for as long as the gate is held on, and then when the gate goes off will release back to 0. If the gate goes off during the attack, it will immediately transition to the release phase. Because the sustain will always be at full `attackLevel`, the `sustainFraction` setting is irrelevant for this mode.
 - `'ADSR'`: Attack-decay-sustain-release envelope. This envelope will attack from 0 to `attackLevel`, and then immediately decay to the sustain level for as long as the gate is held on. When the gate goes off it will release back to 0. If the gate goes off during the attack or decay phases, it will immediately transition to the release phase. The sustain level is determined by the product of `attackLevel` and `sustainFraction`, and hence the sustain level will always be closer to 0 than the attack level.
 
+The default mode is `'ADSR'`.
+
 #### `.attackShape`
 
-Shape of the attack phase. Currently this is fixed to be `.LINEAR`, but other shapes may be supported in the future.
+Shape of the attack phase. Currently this is fixed to be `.LINEAR`, but other shapes may be supported in the future. The default shape is `.LINEAR`.
 
 #### `.attackRate`
 
-The speed with which the attack phase will transition to `.attackLevel`. Must be > 0.
+The speed with which the attack phase will transition to `.attackLevel`. Must be > 0. The default rate is 2.
 
 #### `.attackLevel`
 
-Value to which the envelope will transition during the attack phase. May be positive, negative, or even zero.
+Value to which the envelope will transition during the attack phase. May be positive, negative, or even zero. The default level is 1.
 
 #### `.decayShape`
 
-Shape of the decay phase. May be `.LINEAR` or `.EXPONENTIAL`.
+Shape of the decay phase. May be `.LINEAR` or `.EXPONENTIAL`. The default shape is `.EXPONENTIAL`.
 
 #### `.decayRate`
 
-The speed with which the decay phase will transition to the sustain level (in ADSR mode) or 0 (in AD mode). Must be > 0.
+The speed with which the decay phase will transition to the sustain level (in ADSR mode) or 0 (in AD mode). Must be > 0. The default rate is 1.
 
 #### `.sustainFraction`
 
-In ADSR mode, the sustain level is determined by the product of `.sustainFraction` and `.attackLevel`. Must be >= 0 and <= 1.
+In ADSR mode, the sustain level is determined by the product of `.sustainFraction` and `.attackLevel`. Must be >= 0 and <= 1. The default value is 0.5.
 
 #### `.releaseShape`
 
-Shape of the release phase. May be `.LINEAR` or `.EXPONENTIAL`.
+Shape of the release phase. May be `.LINEAR` or `.EXPONENTIAL`. The default shape is `.EXPONENTIAL`.
 
 #### `.releaseRate`
 
-The speed with which the release phase will transition to 0. Must be > 0.
+The speed with which the release phase will transition to 0. Must be > 0. The default rate is 1.
 
 #### `.MODES`
 
