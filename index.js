@@ -143,50 +143,73 @@ EnvGen.prototype.ATTACK_SHAPES = [EnvGen.prototype.LINEAR];
 EnvGen.prototype.DECAY_SHAPES = [EnvGen.prototype.LINEAR, EnvGen.prototype.EXPONENTIAL];
 EnvGen.prototype.RELEASE_SHAPES = [EnvGen.prototype.LINEAR, EnvGen.prototype.EXPONENTIAL];
 
-EnvGen.prototype._computeScheduledValue = function(time) {
+EnvGen.prototype._interruptScheduledSegments = function(time) {
+  var interruptValue;
+
   if (!this._scheduledSegments.length) {
     // If there are no scheduled segments, that means envelope should be at zero
-    return 0;
-  }
-
-  // Sanity check: Scheduled segments should not start in the future
-  assert(time >= this._scheduledSegments[0].beginTime);
-
-  // Find what scheduled segment (if any) would be active at given time
-  var activeIdx; // index into _scheduledSegments of one that is active at given time, if any
-  for (var i = 0; i < this._scheduledSegments.length; i++) {
-    var seg = this._scheduledSegments[i];
-    if ((time >= seg.beginTime) && (time < seg.endTime)) {
-      activeIdx = i;
-      break;
-    }
-  }
-
-  if (activeIdx === undefined) {
-    // This must mean that time is after last scheduled segment
-    var lastSeg = this._scheduledSegments[this._scheduledSegments.length-1];
-    assert(time >= lastSeg.endTime); // sanity check
-    return lastSeg.endValue;
-  }
-
-  // If we got this far, then the given time falls within a scheduled segment
-  var activeSeg = this._scheduledSegments[activeIdx];
-
-  // Determine the mid-segment value at the given time
-  if (activeSeg.shape === this.LINEAR) {
-    if (activeSeg.beginValue === activeSeg.endValue) {
-      // Special case this since endTime may be +inf
-      return activeSeg.beginValue;
-    }
-
-    // LERP
-    // TODO: should be equal to activeSeg.beginValue + activeSeg.rate*(time - activeSeg.beginTime)
-    return activeSeg.beginValue + ((time - activeSeg.beginTime)/(activeSeg.endTime - activeSeg.beginTime))*(activeSeg.endValue - activeSeg.beginValue);
-  } else if (activeSeg.shape === this.EXPONENTIAL) {
-    return activeSeg.endValue + (activeSeg.beginValue - activeSeg.endValue)*Math.exp(activeSeg.rate*(activeSeg.beginTime - time));
+    interruptValue = 0;
   } else {
-    assert(false);
+    // Sanity check: Scheduled segments should not start in the future
+    assert(time >= this._scheduledSegments[0].beginTime);
+
+    // Find what scheduled segment (if any) would be active at given time
+    var activeIdx; // index into _scheduledSegments of one that is active at given time, if any
+    for (var i = 0; i < this._scheduledSegments.length; i++) {
+      var seg = this._scheduledSegments[i];
+      if ((time >= seg.beginTime) && (time < seg.endTime)) {
+        activeIdx = i;
+        break;
+      }
+    }
+
+    if (activeIdx === undefined) {
+      // This must mean that time is after last scheduled segment
+      var lastSeg = this._scheduledSegments[this._scheduledSegments.length-1];
+      assert(time >= lastSeg.endTime); // sanity check
+      interruptValue = lastSeg.endValue;
+    } else {
+      // If we got this far, then the given time falls within a scheduled segment
+      var activeSeg = this._scheduledSegments[activeIdx];
+
+      // Determine the mid-segment value at the given time
+      if (activeSeg.shape === this.LINEAR) {
+        assert(activeSeg.endTime !== Infinity); // sanity check
+        // LERP
+        // TODO: should be equal to activeSeg.beginValue + activeSeg.rate*(time - activeSeg.beginTime). should we check or use that instead?
+        interruptValue = activeSeg.beginValue + ((time - activeSeg.beginTime)/(activeSeg.endTime - activeSeg.beginTime))*(activeSeg.endValue - activeSeg.beginValue);
+
+        // Replace previous linear ramp with new ramp that ends at interrupt time.
+        // This is important because the ramp could be currently playing, so we don't want to remove it.
+        this._targetParam.linearRampToValueAtTime(interruptValue, time);
+      } else if (activeSeg.shape === this.EXPONENTIAL) {
+        interruptValue = activeSeg.endValue + (activeSeg.beginValue - activeSeg.endValue)*Math.exp(activeSeg.rate*(activeSeg.beginTime - time));
+
+        // Set anchor point for further automations to continue from
+        this._targetParam.setValueAtTime(interruptValue, time);
+      } else {
+        assert(false);
+      }
+    }
   }
+
+  assert(interruptValue !== undefined); // sanity check
+
+  // Cancel all scheduled changes after the interrupt time.
+  // Note that nextafter is necessary here because cancelScheduledValues cancels events
+  // with times >= the given time, so if we just passed time it would cancel whatever event
+  // that we set above.
+  this._targetParam.cancelScheduledValues(nextafter(time, Infinity));
+
+  // Reinit scheduled segments array with a 'dummy' segment to simplify other code.
+  // The dummy segment has zero duration but marks the value at interrupt time.
+  this._scheduledSegments = [{
+    beginTime: time,
+    endTime: time,
+    beginValue: interruptValue,
+    endValue: interruptValue,
+    shape: this.LINEAR,
+  }];
 };
 
 EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
@@ -256,23 +279,8 @@ EnvGen.prototype.gate = function(on, time) {
     return;
   }
 
-  // Determine value that we'll start from
-  var startValue = this._computeScheduledValue(time);
-
-  // Set anchor point at given value
-  this._targetParam.setValueAtTime(startValue, time);
-
-  // Cancel all scheduled changes after that
-  this._targetParam.cancelScheduledValues(nextafter(time, Infinity));
-
-  // Reinit scheduled segments array with a 'dummy' segment to simplify code
-  this._scheduledSegments = [{
-    beginTime: time,
-    endTime: time,
-    beginValue: startValue,
-    endValue: startValue,
-    shape: this.LINEAR,
-  }];
+  // Interrupt scheduled segments at the gate time
+  this._interruptScheduledSegments(time);
 
   if (on) {
     // Schedule attack
