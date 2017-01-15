@@ -1,6 +1,6 @@
 {
   "name": "fastidious-envelope-generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Envelope generator (aka ADSR) for the Web Audio API that tries to be well-behaved and artifact-free",
   "main": "index.js",
   "author": "Russel Simmons <russ@rsimmons.org>",
