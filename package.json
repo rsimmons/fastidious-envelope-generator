@@ -10,8 +10,19 @@
     "type": "git"
   },
   "homepage": "https://github.com/rsimmons/fastidious-envelope-generator",
-  "keywords": ["webaudio", "web-audio", "audio", "envelope", "adsr", "envelope-generator", "envgen"],
+  "keywords": [
+    "webaudio",
+    "web-audio",
+    "audio",
+    "envelope",
+    "adsr",
+    "envelope-generator",
+    "envgen"
+  ],
   "files": [
     "index.js"
-  ]
+  ],
+  "dependencies": {
+    "math-float64-nextafter": "^1.0.0"
+  }
 }

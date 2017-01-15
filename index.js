@@ -1,21 +1,12 @@
 'use strict'
 
+var nextafter = require('math-float64-nextafter');
+
 function assert(v) {
   if (!v) {
     throw new Error('Assertion error');
   }
 }
-
-// based on http://stackoverflow.com/a/31925519
-var nextFloat = (function () {
-  var intArr = new Uint32Array(1);
-  var floatArr = new Float32Array(intArr.buffer);
-  return function(v) {
-    floatArr[0] = v;
-    intArr[0] = intArr[0] + 1;
-    return floatArr[0];
-  }
-})();
 
 var INITIAL_LEVEL = 0; // It doesn't seem useful for this to be a setting
 
@@ -37,7 +28,7 @@ function EnvGen(audioContext, targetParam) {
         // If we're currently in a 'sustain' state, and we switched into AD mode,
         // we would get stuck in sustain state. So just to be safe, whenever mode
         // is changed we fake a gate-off signal.
-        _this.gate(false, nextFloat(Math.max(this._lastGateTime, audioContext.currentTime)));
+        _this.gate(false, nextafter(Math.max(this._lastGateTime, audioContext.currentTime)));
 
         _this._mode = value;
       }
@@ -273,7 +264,7 @@ EnvGen.prototype.gate = function(on, time) {
 
   // Cancel all scheduled changes after that
   // TODO: I think this should be finding next double, not just next float, but unsure how to do that
-  this._targetParam.cancelScheduledValues(nextFloat(time));
+  this._targetParam.cancelScheduledValues(nextafter(time));
 
   // Reinit scheduled segments array with a 'dummy' segment to simplify code
   this._scheduledSegments = [{
