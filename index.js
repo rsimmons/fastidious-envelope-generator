@@ -263,7 +263,6 @@ EnvGen.prototype.gate = function(on, time) {
   this._targetParam.setValueAtTime(startValue, time);
 
   // Cancel all scheduled changes after that
-  // TODO: I think this should be finding next double, not just next float, but unsure how to do that
   this._targetParam.cancelScheduledValues(nextafter(time, Infinity));
 
   // Reinit scheduled segments array with a 'dummy' segment to simplify code
