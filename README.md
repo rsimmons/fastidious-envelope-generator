@@ -45,11 +45,11 @@ setInterval(function() {
 
 ## Background
 
-Have you heard about the [Web Audio API](https://webaudio.github.io/web-audio-api/)? It's this fantastic new API that lets you do sophisticated audio processing in the browser. One particularly important building block for audio synthesis is called an *envelope generator* (aka ADSR), and the API helpfully includes "automation" methods (`AudioParam.linearRampToValueAtTime()`, etc.) to make it easy to build those.
+The [Web Audio API](https://webaudio.github.io/web-audio-api/) is a fantastic new-ish API that lets you do sophisticated audio processing in the browser. One particularly important building block for audio synthesis is called an *envelope generator* (aka ADSR), and the API helpfully includes "automation" methods (`AudioParam.linearRampToValueAtTime()`, etc.) to make it easy to build those.
 
 And if you build an envelope generator using those handy methods, it will sound good, being free of any weird pops or other sonic artifacts. ... Right?
 
-**Sadly, no**. It turns out that it is rather tricky to build a well-behaved envelope generator given the API at the time of this writing (January 2017). There are several other envelope generators on GitHub, but as far as I know they all have the issue that if a new envelope (gate-on) is started when a previous one is still playing, there will be a discontinuity that may result in a very audible click. (*please hit me up if you know of any that avoid this issue!*)
+**Sadly, no**. It turns out that it is rather tricky to build a well-behaved envelope generator given the API at the time of this writing (January 2017). For example, there are several other envelope generators on GitHub, but as far as I know they all have the issue that if a new envelope (gate-on) is started when a previous one is still playing, there will be a discontinuity that may result in a very audible click. (*please hit me up if you know of any that avoid this issue!*)
 
 The authors of the API seem to be aware of this problem, and have spec'd an important new method called `cancelAndHoldAtTime` that will improve the situation, but that method is not yet implemented by any browsers. And even with that method, naively-coded envelope generators will still sound slightly off compared to those in most synthesizers, for reasons I will outline in more detail below.
 
