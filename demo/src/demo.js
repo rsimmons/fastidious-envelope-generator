@@ -76,9 +76,7 @@ function startAutoGates() {
 
   scheduler.start(function(e) {
     while (autoGateNextTime < e.end) {
-      console.log('auto gate on', autoGateNextTime);
       egen.gate(true, autoGateNextTime);
-      console.log('auto gate off', autoGateNextTime + autoGateDuty*autoGateSpacing);
       egen.gate(false, autoGateNextTime + autoGateDuty*autoGateSpacing);
 
       autoGateNextTime += autoGateSpacing;
