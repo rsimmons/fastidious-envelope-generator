@@ -194,7 +194,7 @@ EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
   var lastSeg = this._scheduledSegments[this._scheduledSegments.length - 1];
 
   // It doesn't make sense to schedule a segment after an infinite one
-  assert(lastSeg.endTime !== Number.POSITIVE_INFINITY);
+  assert(lastSeg.endTime !== Infinity);
 
   if (lastSeg.endValue === endValue) {
     // We can just skip this segment since value is already there
@@ -203,7 +203,7 @@ EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
 
   // Based on shape, compute end time and call appropriate scheduling method
   var endTime;
-  if (rate === Number.POSITIVE_INFINITY) {
+  if (rate === Infinity) {
     // Special case this
     endTime = lastSeg.endTime;
     this._targetParam.setValueAtTime(endValue, endTime); // Spec says this should work. "If one of these events is added at a time where there is already one or more events, then it will be placed in the list after them, but before events whose times are after the event."
@@ -215,7 +215,7 @@ EnvGen.prototype._scheduleSegment = function(endValue, shape, rate) {
         break;
 
       case this.EXPONENTIAL:
-        endTime = Number.POSITIVE_INFINITY;
+        endTime = Infinity;
         this._targetParam.setTargetAtTime(endValue, lastSeg.endTime, 1.0/rate);
         break;
 
