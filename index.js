@@ -265,8 +265,6 @@ EnvGen.prototype.gate = function(on, time) {
     return;
   }
 
-  // TODO: verify that time is greater than any previous gate times?
-
   // Determine value that we'll start from
   var startValue = this._computeScheduledValue(time);
 
