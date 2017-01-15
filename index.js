@@ -28,7 +28,7 @@ function EnvGen(audioContext, targetParam) {
         // If we're currently in a 'sustain' state, and we switched into AD mode,
         // we would get stuck in sustain state. So just to be safe, whenever mode
         // is changed we fake a gate-off signal.
-        _this.gate(false, nextafter(Math.max(this._lastGateTime, audioContext.currentTime)));
+        _this.gate(false, nextafter(Math.max(this._lastGateTime, audioContext.currentTime), Infinity));
 
         _this._mode = value;
       }
@@ -264,7 +264,7 @@ EnvGen.prototype.gate = function(on, time) {
 
   // Cancel all scheduled changes after that
   // TODO: I think this should be finding next double, not just next float, but unsure how to do that
-  this._targetParam.cancelScheduledValues(nextafter(time));
+  this._targetParam.cancelScheduledValues(nextafter(time, Infinity));
 
   // Reinit scheduled segments array with a 'dummy' segment to simplify code
   this._scheduledSegments = [{
