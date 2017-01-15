@@ -174,7 +174,7 @@ EnvGen.prototype._computeScheduledValue = function(time) {
   if (activeIdx === undefined) {
     // This must mean that time is after last scheduled segment
     var lastSeg = this._scheduledSegments[this._scheduledSegments.length-1];
-    assert(time > lastSeg.endTime); // sanity check
+    assert(time >= lastSeg.endTime); // sanity check
     return lastSeg.endValue;
   }
 
