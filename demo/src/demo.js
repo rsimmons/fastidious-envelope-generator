@@ -2,6 +2,7 @@
 
 var EnvGen = require('../../index');
 var createGrapher = require('./grapher');
+var EventScheduler = require('./scheduler');
 
 var audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -62,6 +63,61 @@ document.querySelector('#gate-off-button').addEventListener('click', function(e)
   e.preventDefault();
   egen.gateOff();
 });
+
+var scheduler = new EventScheduler(audioContext);
+var autoGateNextTime;
+var autoGateNextNumber;
+var autoGateSpacing ;
+var autoGateDuty;
+
+function startAutoGates() {
+  autoGateNextTime = audioContext.currentTime + 0.01; // start first tick a little in the future
+  autoGateNextNumber = 0;
+
+  scheduler.start(function(e) {
+    while (autoGateNextTime < e.end) {
+      console.log('auto gate on', autoGateNextTime);
+      egen.gate(true, autoGateNextTime);
+      console.log('auto gate off', autoGateNextTime + autoGateDuty*autoGateSpacing);
+      egen.gate(false, autoGateNextTime + autoGateDuty*autoGateSpacing);
+
+      autoGateNextTime += autoGateSpacing;
+      autoGateNextNumber++;
+    }
+  });
+}
+
+function stopAutoGates() {
+  scheduler.stop();
+}
+
+document.querySelector('#auto-gate-enable').addEventListener('change', function(e) {
+  if (e.target.checked) {
+    startAutoGates();
+  } else {
+    stopAutoGates();
+  }
+});
+
+var autoGateSpacingElem = document.querySelector('#auto-gate-spacing');
+function updateGateSpacing() {
+  var v = parseFloat(autoGateSpacingElem.value);
+  if (v > 0) {
+    autoGateSpacing = v;
+  }
+}
+updateGateSpacing();
+autoGateSpacingElem.addEventListener('input', updateGateSpacing);
+
+var autoGateDutyElem = document.querySelector('#auto-gate-duty');
+function updateGateDuty() {
+  var v = parseFloat(autoGateDutyElem.value);
+  if ((v > 0) && (v < 100)) {
+    autoGateDuty = 0.01*v;
+  }
+}
+updateGateDuty();
+autoGateDutyElem.addEventListener('input', updateGateDuty);
 
 // Hook up setting controls
 var SETTINGS = [

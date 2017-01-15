@@ -9,7 +9,7 @@ html {
 }
 
 #controls {
-  min-width: 300px;
+  min-width: 350px;
 }
 
 canvas {
@@ -17,7 +17,7 @@ canvas {
   margin-bottom: 15px;
 }
 
-input {
+input[type=number] {
   width: 5em;
 }
 
@@ -50,6 +50,10 @@ button:active {
   padding: 1px 0;
 }
 
+p {
+  margin: 0 0 1em 0;
+}
+
     </style>
   </head>
   <body>
@@ -58,9 +62,14 @@ button:active {
       <canvas id="env-graph" width="512" height="256"></canvas>
       <div id="controls">
         <div id="gate-controls">
+          <p>
             <button id="gate-button">Gate<br><em>(press and hold)</em></button>
             <button id="gate-on-button">Gate<br>On</button>
             <button id="gate-off-button">Gate<br>Off</button>
+          </p>
+          <p>
+            <label><input type="checkbox" id="auto-gate-enable">Schedule gate<br>every <input id="auto-gate-spacing" type="number" min="0.001" step="any" value="2.0">s with<br>duty cycle <input id="auto-gate-duty" type="number" min="0" max="100" step="any" value="50">%</label>
+          </p>
         </div>
         <div id="settings">
         </div>
