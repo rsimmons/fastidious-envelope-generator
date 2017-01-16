@@ -149,6 +149,9 @@ EnvGen.prototype._interruptScheduledSegments = function(time) {
   if (!this._scheduledSegments.length) {
     // If there are no scheduled segments, that means envelope should be at zero
     interruptValue = 0;
+
+    // Set anchor point for further automations to continue from
+    this._targetParam.setValueAtTime(interruptValue, time);
   } else {
     // Sanity check: Scheduled segments should not start in the future
     assert(time >= this._scheduledSegments[0].beginTime);
@@ -168,6 +171,9 @@ EnvGen.prototype._interruptScheduledSegments = function(time) {
       var lastSeg = this._scheduledSegments[this._scheduledSegments.length-1];
       assert(time >= lastSeg.endTime); // sanity check
       interruptValue = lastSeg.endValue;
+
+      // Set anchor point for further automations to continue from
+      this._targetParam.setValueAtTime(interruptValue, time);
     } else {
       // If we got this far, then the given time falls within a scheduled segment
       var activeSeg = this._scheduledSegments[activeIdx];
