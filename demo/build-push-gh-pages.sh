@@ -16,6 +16,7 @@ SRC_SHA="$(cd $BUILDTMP/src && git rev-parse HEAD)"
 echo "Doing build ..."
 (
 cd $BUILDTMP/src
+yarn
 cd demo
 yarn && yarn run build
 )
