@@ -1,5 +1,9 @@
 # Fastidious-envelope-generator changelog
 
+## [1.0.2] - 2017-01-15
+### Fixed
+- Fixed issue that made rapid attacks starting from 0 not be as rapid as they were supposed to be.
+
 ## [1.0.1] - 2017-01-15
 ### Added
 - Provide NPM install instructions in README
