@@ -33,7 +33,7 @@ vcaNode.connect(audioContext.destination);
 var eg = new EnvGen(audioContext, vcaNode.gain);
 eg.mode = 'ASR';
 eg.attackRate = 100;
-eg.releaesRate = 50;
+eg.releaseRate = 50;
 
 // Every second, schedule a gate cycle a little bit in the future
 setInterval(function() {
