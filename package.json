@@ -22,7 +22,5 @@
   "files": [
     "index.js"
   ],
-  "dependencies": {
-    "math-float64-nextafter": "^1.0.0"
-  }
+  "dependencies": {}
 }

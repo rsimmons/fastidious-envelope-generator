@@ -120,13 +120,9 @@ autoGateDutyElem.addEventListener('input', updateGateDuty);
 // Hook up setting controls
 var SETTINGS = [
   {name: 'mode', options: [['AD', 'AD'], ['ASR', 'ASR'], ['ADSR', 'ADSR']]},
-  {name: 'attackShape', options: [[egen.LINEAR, 'linear']]},
   {name: 'attackRate', min: 0},
-  {name: 'attackLevel'},
-  {name: 'decayShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
   {name: 'decayRate', min: 0},
-  {name: 'sustainFraction', min: 0, max: 1},
-  {name: 'releaseShape', options: [[egen.LINEAR, 'linear'], [egen.EXPONENTIAL, 'exponential']]},
+  {name: 'sustainLevel', min: 0, max: 1},
   {name: 'releaseRate', min: 0},
 ];
 
