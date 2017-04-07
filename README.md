@@ -32,8 +32,8 @@ vcaNode.connect(audioContext.destination);
 // Instantiate envelope generator, leaving some settings as defaults
 var eg = new EnvGen(audioContext, vcaNode.gain);
 eg.mode = 'ASR';
-eg.attackRate = 100;
-eg.releaseRate = 50;
+eg.attackTime = 0.01;
+eg.releaseTime = 0.02;
 
 // Every second, schedule a gate cycle a little bit in the future
 setInterval(function() {
@@ -55,15 +55,13 @@ The authors of the API seem to be aware of this problem, and have spec'd an impo
 
 So long story short, I really wanted a Web Audio envelope generator that worked correctly and handled all the various edge cases and so I tried to make one and it was not fun to make but I did it anyways and without further ado I humbly present to you (*snare rush, please*): **Fastidious Envelope Generator**.
 
-## Continuity, Shapes, Rates
+## Continuity, Shapes, Times
 
 The most important feature of Fastidious is that if a new envelope is started when an old one is still in progress, there will be no unwanted discontinuity. The new envelope will start from where the old one is interrupted. This is how almost all analog synthesizer envelopes work, and usually sounds better than the alternative of restarting the new attack from zero. Abruptly transitioning an envelope to zero will likely cause an audible click if the envelope is not already at a low value.
 
-Most software synthesizers let you specify a **time** for each envelope phase. Fastidious instead has you specify a **rate**, the speed with which that phase transitions to its target value. This makes more sense given that envelopes may start from where an old one left off. If a new attack starts when the value is already quite high, it sounds more natural for the attack to proceed at the same **rate** as normal (taking shorter time), vs. taking its specified time (and hence having a lower rate). Also, specifing by rate makes more sense if the phase has an exponential approach shape, in which case the length of the transition is theoretically infinte (it asymptotically appraoches its target value).
+As with most synthesizers, Fastidious lets you specify a **time** for each envelope phase. But per the previous paragraph, when a new phase starts, the value proceeds from where it last left off. So if a new attack starts when the value is already quite high, it has less distance to go before reaching 1. It turns out that it sounds more natural for the attack to always proceed at the same **rate** (taking less time perhaps) vs. always taking its nominal time to reach 1 (at a lower rate). So if you're the type who pays attention to minutiae, be aware that time parameters really equate to rates.
 
-Fastidious generates envelopes with exponential curves for attack, decay, and release. However, the attack phase has such a slight curvature that it is effectively linear, and can be treated as such.
-
-Having exponential decay and release curves means that the distance between the current value and its target decreases at an exponential rate. In other words, each second the distance between the value and its target gets divided by a constant amount. This results in an asymptotic approach where the value never reaches its target. This shape tends to sound good for amplitude decay and release phases, giving a natural fade out. For decay and release, each second the distance to target value decreases by a factor of `exp(rate)`, so a higher `rate` setting will result in a faster decay. This is implemented via the Web Audio API method `setTargetAtTime`, (**not** `exponentialRampToValueAtTime`, which sounds relevant but has a different purpose).
+Fastidious generates envelopes with a (near-)linear attack shapes and exponential decay and release shapes. If a new attack starts from 0, it will reach 1 in `attackTime` seconds. Decay and release on the other hand are exponential decays that only asymptotically approach their target values. The `decayTime` and `releaseTime` parameters therefore don't represent the full time to reach their targets (`sustainLevel` or 0, respectively), but rather _time constants_, which is the time it takes for the values to get 1-1/e (about 63%) closer to their targets. To put it another way, the log of the distance from the values to their targets is a straight line, with slope of 1/time-constant.
 
 ## API
 
@@ -100,21 +98,21 @@ The current mode or style of envelope being generated. Changes to this property 
 
 The default mode is `'ADSR'`.
 
-#### `.attackRate`
+#### `.attackTime`
 
-The speed with which the attack phase will (almost-linearly) transition to 1. Must be > 0. The default rate is 2.
+The time it takes for the attack phase to (almost-linearly) transition from 0 to 1, in seconds. Must be > 0. The default time is 0.5.
 
-#### `.decayRate`
+#### `.decayTime`
 
-The speed with which the decay phase will transition to the sustain level (in ADSR mode) or 0 (in AD mode). Must be > 0. The default rate is 1.
+The time constant for the decay phase as it exponentially transitions to the sustain level (in ADSR mode) or 0 (in AD mode). Must be > 0. The default time is 1.
 
 #### `.sustainLevel`
 
 In ADSR mode, the level to which the envelope transitions after the attack phase completes. Must be >= 0 and <= 1. The default value is 0.5.
 
-#### `.releaseRate`
+#### `.releaseTime`
 
-The speed with which the release phase will transition to 0. Must be > 0. The default rate is 1.
+The time constant for the release phase as it exponentially falls to 0. Must be > 0. The default time is 1.
 
 #### `.MODES`
 

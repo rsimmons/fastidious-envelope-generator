@@ -120,10 +120,10 @@ autoGateDutyElem.addEventListener('input', updateGateDuty);
 // Hook up setting controls
 var SETTINGS = [
   {name: 'mode', options: [['AD', 'AD'], ['ASR', 'ASR'], ['ADSR', 'ADSR']]},
-  {name: 'attackRate', min: 0},
-  {name: 'decayRate', min: 0},
+  {name: 'attackTime', min: 0},
+  {name: 'decayTime', min: 0},
   {name: 'sustainLevel', min: 0, max: 1},
-  {name: 'releaseRate', min: 0},
+  {name: 'releaseTime', min: 0},
 ];
 
 var settingsElem = document.querySelector('#settings');

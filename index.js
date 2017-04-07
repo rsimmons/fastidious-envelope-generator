@@ -35,20 +35,20 @@ function EnvGen(audioContext, targetParam) {
     }
   });
 
-  Object.defineProperty(this, 'attackRate', {
-    get: function() { return _this._attackRate; },
+  Object.defineProperty(this, 'attackTime', {
+    get: function() { return _this._attackTime; },
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value) && (value > 0)) {
-        _this._attackRate = value;
+        _this._attackTime = value;
       }
     }
   });
 
-  Object.defineProperty(this, 'decayRate', {
-    get: function() { return _this._decayRate; },
+  Object.defineProperty(this, 'decayTime', {
+    get: function() { return _this._decayTime; },
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value) && (value > 0)) {
-        _this._decayRate = value;
+        _this._decayTime = value;
       }
     }
   });
@@ -62,21 +62,21 @@ function EnvGen(audioContext, targetParam) {
     }
   });
 
-  Object.defineProperty(this, 'releaseRate', {
-    get: function() { return _this._releaseRate; },
+  Object.defineProperty(this, 'releaseTime', {
+    get: function() { return _this._releaseTime; },
     set: function(value) {
       if ((typeof(value) === 'number') && !isNaN(value) && (value > 0)) {
-        _this._releaseRate = value;
+        _this._releaseTime = value;
       }
     }
   });
 
   // Default settings
   this._mode = 'ADSR';
-  this._attackRate = 2;
-  this._decayRate = 1;
+  this._attackTime = 0.5;
+  this._decayTime = 1;
   this._sustainLevel = 0.5;
-  this._releaseRate = 1;
+  this._releaseTime = 1;
 
   this._targetParam.value = INITIAL_LEVEL;
 
@@ -89,13 +89,13 @@ function EnvGen(audioContext, targetParam) {
   //  beginTime
   //  beginValue
   //  targetValue
-  //  rate: abs(slope-of-log(value))
+  //  timeConst: 1/abs(slope-of-log(value))
   // The _scheduledSegments array is kept in time-order, and always has at least one element.
   this._scheduledSegments = [{
     beginTime: 0,
     beginValue: INITIAL_LEVEL,
     targetValue: INITIAL_LEVEL,
-    rate: 1, // doesn't matter what this is since beginValue === targetValue
+    timeConst: 1, // doesn't matter what this is since beginValue === targetValue
   }];
 
   // Track info about last gate we received
@@ -107,25 +107,25 @@ EnvGen.prototype.MODES = ['AD', 'ASR', 'ADSR'];
 
 // Schedule a segment with the target AudioParam, and add it to our internal tracking.
 // It must start after our current last segment
-EnvGen.prototype._appendSegment = function(beginTime, beginValue, targetValue, rate) {
+EnvGen.prototype._appendSegment = function(beginTime, beginValue, targetValue, timeConst) {
   assert(beginTime >= this._scheduledSegments[this._scheduledSegments.length-1].beginTime); // sanity check
 
   // Set an anchor point for new segment to start from
   this._targetParam.setValueAtTime(beginValue, beginTime);
 
   // Schedule the new segment
-  this._targetParam.setTargetAtTime(targetValue, beginTime, 1.0/rate);
+  this._targetParam.setTargetAtTime(targetValue, beginTime, timeConst);
 
   this._scheduledSegments.push({
     beginTime: beginTime,
     beginValue: beginValue,
     targetValue: targetValue,
-    rate: rate,
+    timeConst: timeConst,
   });
 };
 
 // Schedule a segment that starts at the given time, which may be during or before previously scheduled segments
-EnvGen.prototype._scheduleSegmentFromTime = function(time, targetValue, rate) {
+EnvGen.prototype._scheduleSegmentFromTime = function(time, targetValue, timeConst) {
   // Find what scheduled segment (if any) would be active at given time
   var activeIdx;
   for (var i = 0; i < this._scheduledSegments.length; i++) {
@@ -139,7 +139,7 @@ EnvGen.prototype._scheduleSegmentFromTime = function(time, targetValue, rate) {
   var activeSeg = this._scheduledSegments[activeIdx];
 
   // Determine the mid-segment value at the given time
-  var interruptValue = activeSeg.targetValue + (activeSeg.beginValue - activeSeg.targetValue)*Math.exp(activeSeg.rate*(activeSeg.beginTime - time));
+  var interruptValue = activeSeg.targetValue + (activeSeg.beginValue - activeSeg.targetValue)*Math.exp((activeSeg.beginTime - time)/activeSeg.timeConst);
 
   // Truncate _scheduledSegments array to end at the active segment
   this._scheduledSegments.length = activeIdx+1;
@@ -148,18 +148,18 @@ EnvGen.prototype._scheduleSegmentFromTime = function(time, targetValue, rate) {
   this._targetParam.cancelScheduledValues(time);
 
   // Append the new segment from the interrupted point
-  this._appendSegment(time, interruptValue, targetValue, rate);
+  this._appendSegment(time, interruptValue, targetValue, timeConst);
 };
 
 // Schedule a segment that starts when the last previously-scheduled segment reaches the given value threshold
-EnvGen.prototype._scheduleSegmentFromValueThreshold = function(valueThreshold, targetValue, rate) {
+EnvGen.prototype._scheduleSegmentFromValueThreshold = function(valueThreshold, targetValue, timeConst) {
   var lastSeg = this._scheduledSegments[this._scheduledSegments.length-1];
 
   // Determine the time that the last segment will hit the given value threshold
-  var interruptTime = Math.abs(Math.log((lastSeg.targetValue - valueThreshold)/(lastSeg.targetValue - lastSeg.beginValue))/lastSeg.rate) + lastSeg.beginTime;
+  var interruptTime = Math.abs(Math.log((lastSeg.targetValue - valueThreshold)/(lastSeg.targetValue - lastSeg.beginValue))*lastSeg.timeConst) + lastSeg.beginTime;
 
   // Append the new segment from the interrupt time
-  this._appendSegment(interruptTime, valueThreshold, targetValue, rate);
+  this._appendSegment(interruptTime, valueThreshold, targetValue, timeConst);
 };
 
 // Cull segments from this._scheduledSegments end before beforeTime 
@@ -202,9 +202,9 @@ EnvGen.prototype.gate = function(on, time) {
     // To make an attack that reaches maximum level (1) in a finite amount of time,
     //  we aim to exponentially approach a value that is greater than 1, and then
     //  stop the attack when it reaches 1. This is how analog envgens work.
-    var ATTACK_CURVINESS = 0.01 // Make this nearly-linear. We could expose as a parameter later on
-    var attackTargetLevel = 1/(1 - Math.exp(-ATTACK_CURVINESS/this._attackRate));
-    this._scheduleSegmentFromTime(time, attackTargetLevel, ATTACK_CURVINESS);
+    var ATTACK_LINEARITY = 100 // Make this nearly-linear. We could expose as a parameter later on
+    var attackTargetLevel = 1/(1 - Math.exp(-this._attackTime/ATTACK_LINEARITY));
+    this._scheduleSegmentFromTime(time, attackTargetLevel, ATTACK_LINEARITY);
 
     // Schedule whatever phase that comes after attack (decay or sustain)
     if ((this._mode === 'AD') || (this._mode === 'ADSR')) {
@@ -217,10 +217,10 @@ EnvGen.prototype.gate = function(on, time) {
       }
 
       // Schedule decay
-      this._scheduleSegmentFromValueThreshold(ATTACK_LEVEL, decayTargetLevel, this._decayRate);
+      this._scheduleSegmentFromValueThreshold(ATTACK_LEVEL, decayTargetLevel, this._decayTime);
     } else if (this._mode === 'ASR') {
       // Schedule sustain
-      this._scheduleSegmentFromValueThreshold(ATTACK_LEVEL, ATTACK_LEVEL, 1); // rate here doesn't really matter
+      this._scheduleSegmentFromValueThreshold(ATTACK_LEVEL, ATTACK_LEVEL, 1); // timeConst here doesn't really matter
     } else {
       assert(false); // invalid mode
     }
@@ -229,7 +229,7 @@ EnvGen.prototype.gate = function(on, time) {
       // We ignore gate-off when in AD mode
     } else if ((this._mode === 'ASR') || (this._mode === 'ADSR')) {
       // Schedule release
-      this._scheduleSegmentFromTime(time, INITIAL_LEVEL, this._releaseRate);
+      this._scheduleSegmentFromTime(time, INITIAL_LEVEL, this._releaseTime);
     } else {
       assert(false); // invalid mode
     }
